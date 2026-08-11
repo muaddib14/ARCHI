@@ -55,7 +55,7 @@ export async function GET() {
   try {
     if (process.env.DATABASE_URL) {
       try {
-        const { query } = await import('../../../../lib/db');
+        const { query } = await import('../../../lib/db');
         const dbAgents = await query(
           'SELECT * FROM agents WHERE status != $1 ORDER BY created_at DESC',
           ['archived']
