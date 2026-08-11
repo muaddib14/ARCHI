@@ -229,37 +229,130 @@ export default function AgentsPage() {
         ) : filteredAgents.length > 0 ? (
           <div className="knowledge-grid">
             {filteredAgents.map(agent => (
-              <div className="knowledge-card" key={agent.id}>
-                <div>
-                  <div className="knowledge-card-header">
-                    <div className="knowledge-card-icon" style={{ background: agent.status === 'active' ? '#dcfce7' : 'var(--purple-soft)', color: agent.status === 'active' ? '#166534' : 'var(--stone)' }}>
-                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <circle cx="12" cy="12" r="10" />
-                        <path d="M12 6v6l4 2" />
-                      </svg>
+              <Link href={`/agents/${agent.id}`} key={agent.id}>
+                <div className="knowledge-card" style={{ cursor: 'pointer', transition: 'all 0.2s ease' }}>
+                  <div>
+                    <div className="knowledge-card-header">
+                      <div className="knowledge-card-icon" style={{
+                        background: agent.status === 'active' ? '#dcfce7' : 'var(--purple-soft)',
+                        color: agent.status === 'active' ? '#166534' : 'var(--stone)',
+                        fontSize: '20px'
+                      }}>
+                        {agent.status === 'active' ? '●' : '○'}
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <h3 className="knowledge-card-title" style={{ marginBottom: '4px' }}>{agent.name}</h3>
+                        <div style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          padding: '3px 10px',
+                          background: agent.status === 'active' ? '#dcfce7' : 'var(--purple-soft)',
+                          color: agent.status === 'active' ? '#166534' : 'var(--stone)',
+                          fontSize: '11px',
+                          fontWeight: '700',
+                          borderRadius: 'var(--r-pill)',
+                          border: `1px solid ${agent.status === 'active' ? '#86efac' : 'rgba(109, 40, 217, 0.2)'}`
+                        }}>
+                          <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'currentColor' }}></span>
+                          {agent.status.charAt(0).toUpperCase() + agent.status.slice(1)}
+                        </div>
+                      </div>
                     </div>
-                    <div style={{ flex: 1 }}>
-                      <h3 className="knowledge-card-title">{agent.name}</h3>
-                      <p className="knowledge-card-status" style={{ color: agent.status === 'active' ? '#166534' : '#666' }}>
-                        {agent.status.charAt(0).toUpperCase() + agent.status.slice(1)}
-                      </p>
+
+                    <p className="knowledge-card-desc">{agent.description || 'No description provided'}</p>
+
+                    <div style={{
+                      display: 'flex',
+                      gap: '12px',
+                      fontSize: '12px',
+                      color: 'var(--stone)',
+                      marginBottom: '16px',
+                      paddingBottom: '12px',
+                      borderBottom: '1px solid var(--purple-soft)'
+                    }}>
+                      <div>
+                        <div style={{ fontWeight: '700', marginBottom: '2px' }}>Model</div>
+                        <div style={{ fontSize: '11px', fontFamily: 'var(--font-mono)' }}>{agent.model.split('-').pop()}</div>
+                      </div>
+                      <div style={{ flex: 1, textAlign: 'right' }}>
+                        <div style={{ fontWeight: '700', marginBottom: '2px' }}>Owner</div>
+                        <div style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', opacity: 0.7 }}>{agent.owner_wallet.slice(0, 6)}...{agent.owner_wallet.slice(-4)}</div>
+                      </div>
                     </div>
                   </div>
-                  <p className="knowledge-card-desc">{agent.description}</p>
-                  <div className="knowledge-card-footer">
-                    <span className="knowledge-card-meta">Model: {agent.model}</span>
+
+                  <div style={{
+                    display: 'flex',
+                    gap: '8px',
+                    fontSize: '12px',
+                    color: 'var(--purple-main)',
+                    fontWeight: '700'
+                  }}>
+                    <span>View Details</span>
+                    <span>→</span>
                   </div>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         ) : (
-          <div style={{ textAlign: 'center', padding: '60px 20px' }}>
-            <p style={{ color: '#999', marginBottom: '20px' }}>No agents found</p>
+          <div style={{
+            textAlign: 'center',
+            padding: '100px 40px',
+            background: 'linear-gradient(135deg, rgba(243, 232, 255, 0.5) 0%, rgba(255, 255, 255, 0.8) 100%)',
+            border: '2px solid var(--purple-light)',
+            borderRadius: 'var(--r-lg)',
+            maxWidth: '600px',
+            margin: '0 auto',
+            boxShadow: '0 4px 20px rgba(109, 40, 217, 0.06)'
+          }}>
+            <div style={{
+              width: '3px',
+              height: '48px',
+              background: 'var(--purple-main)',
+              margin: '0 auto 24px',
+              borderRadius: '2px'
+            }}></div>
+
+            <h3 style={{
+              fontSize: '28px',
+              fontWeight: '900',
+              color: 'var(--purple-deep)',
+              marginBottom: '12px',
+              letterSpacing: '-0.02em'
+            }}>
+              Ready to Deploy?
+            </h3>
+
+            <p style={{
+              color: 'var(--stone)',
+              fontSize: '15px',
+              lineHeight: '1.7',
+              marginBottom: '40px',
+              maxWidth: '480px',
+              margin: '0 auto 40px'
+            }}>
+              No agents in this filter yet. Deploy your first autonomous AI agent with custom tools, system prompts, and real-time monitoring.
+            </p>
+
             <button
               onClick={() => setShowCreateModal(true)}
               className="btn-hero-primary"
-              style={{ padding: '10px 24px', fontSize: '14px', borderRadius: '50px', cursor: 'pointer' }}
+              style={{
+                padding: '14px 36px',
+                fontSize: '15px',
+                borderRadius: '50px',
+                cursor: 'pointer',
+                fontWeight: '800',
+                transition: 'all 0.2s ease'
+              }}
+              onMouseOver={(e) => {
+                e.currentTarget.style.transform = 'translate(-2px, -2px)';
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.transform = 'translate(0, 0)';
+              }}
             >
               + Deploy First Agent
             </button>
