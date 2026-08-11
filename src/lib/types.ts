@@ -43,3 +43,11 @@ export interface ToolResult {
   data?: any;
   error?: string;
 }
+
+export interface ExecutionResult {
+  agentId: string;
+  query: string;
+  result: string;
+  tokensUsed: number;
+  executionMs: number;
+}
