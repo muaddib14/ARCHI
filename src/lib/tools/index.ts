@@ -47,3 +47,52 @@ export function getToolDefinitions() {
 }
 
 export const AVAILABLE_TOOLS = getToolDefinitions();
+
+export async function executeTool(name: string, input: any): Promise<any> {
+  switch (name) {
+    case 'solana_swap':
+      return {
+        success: true,
+        data: {
+          txSignature: 'mock_signature_' + Date.now(),
+          inputAmount: input.amount,
+          message: `Queued swap: ${input.amount} from ${input.inputMint} to ${input.outputMint}`
+        }
+      };
+    case 'mint_nft':
+      return {
+        success: true,
+        data: {
+          mintAddress: 'mock_mint_' + Date.now(),
+          name: input.name,
+          symbol: input.symbol,
+          message: `Minted NFT: ${input.name}`
+        }
+      };
+    case 'query_pgvector':
+      return {
+        success: true,
+        data: {
+          results: [
+            { text: 'Related document 1', score: 0.95 },
+            { text: 'Related document 2', score: 0.87 }
+          ],
+          query: input.query
+        }
+      };
+    case 'pyth_price_feed':
+      return {
+        success: true,
+        data: {
+          price: (Math.random() * 100).toFixed(2),
+          timestamp: Date.now(),
+          priceFeedId: input.priceFeedId
+        }
+      };
+    default:
+      return {
+        success: false,
+        error: `Unknown tool: ${name}`
+      };
+  }
+}

@@ -1,0 +1,24 @@
+[toolchain]
+
+[features]
+seeds = true
+init-if-needed = true
+
+[programs.mainnet]
+archi = "ARCHiN8u9v8vXx3hXXZjWCb3qFQQn7R7zKaZDRFE94Q"
+
+[programs.devnet]
+archi = "ARCHiN8u9v8vXx3hXXZjWCb3qFQQn7R7zKaZDRFE94Q"
+
+[programs.localnet]
+archi = "ARCHiN8u9v8vXx3hXXZjWCb3qFQQn7R7zKaZDRFE94Q"
+
+[registry]
+url = "https://api.apr.dev"
+
+[provider]
+cluster = "Devnet"
+wallet = "~/.config/solana/id.json"
+
+[scripts]
+test = "cargo test"

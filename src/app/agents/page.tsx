@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
+import toast, { Toaster } from 'react-hot-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { useWallet } from '@solana/wallet-adapter-react';
 
@@ -67,18 +68,30 @@ export default function AgentsPage() {
     e.preventDefault();
     if (!formData.name || !wallet) return;
 
+    const loadingToast = toast.loading('Creating agent...');
+
     try {
       const res = await fetch('/api/agents', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...formData, owner_wallet: wallet })
       });
+
+      if (!res.ok) {
+        const error = await res.json();
+        toast.error(`Failed to create agent: ${error.error || 'Unknown error'}`, { id: loadingToast });
+        return;
+      }
+
       const newAgent = await res.json();
       setAgents(prev => [newAgent, ...prev]);
       setShowCreateModal(false);
       setFormData({ name: '', description: '', model: 'claude-3-5-sonnet-20241022', system_prompt: '', owner_wallet: '' });
+
+      toast.success(`Agent "${newAgent.name}" created successfully!`, { id: loadingToast });
     } catch (err) {
       console.error('Error creating agent:', err);
+      toast.error('Failed to create agent. Please try again.', { id: loadingToast });
     }
   };
 
@@ -111,6 +124,7 @@ export default function AgentsPage() {
 
   return (
     <main style={{ minHeight: '100vh', background: 'var(--canvas, #faf5ff)' }}>
+      <Toaster position="bottom-right" />
       {/* Top Announcement Bar */}
       <div className="announcement-bar">
         <span className="announcement-dot"></span>

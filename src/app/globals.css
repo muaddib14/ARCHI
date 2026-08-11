@@ -1198,3 +1198,44 @@ a { color: inherit; text-decoration: none; }
   margin-top: 12px;
 }
 
+/* ============================================================
+   TOAST NOTIFICATIONS (react-hot-toast)
+   ============================================================ */
+
+:root {
+  --toastify-color-success: #10b981;
+  --toastify-color-error: #f43f5e;
+  --toastify-color-warning: #f59e0b;
+}
+
+.react-hot-toast {
+  background: #ffffff !important;
+  border: 2px solid var(--purple-deep) !important;
+  border-radius: var(--r-md) !important;
+  box-shadow: var(--shadow-retro) !important;
+  font-family: var(--font-body) !important;
+  font-weight: 600 !important;
+  font-size: 14px !important;
+  color: var(--purple-deep) !important;
+  padding: 16px 20px !important;
+  max-width: 360px !important;
+}
+
+.react-hot-toast.success {
+  border-color: var(--retro-mint) !important;
+  background: #f0fdf4 !important;
+  color: #166534 !important;
+}
+
+.react-hot-toast.error {
+  border-color: var(--retro-coral) !important;
+  background: #fdf2f8 !important;
+  color: #9d174d !important;
+}
+
+.react-hot-toast.loading {
+  border-color: var(--purple-main) !important;
+  background: #f3e8ff !important;
+  color: var(--purple-main) !important;
+}
+

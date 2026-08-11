@@ -45,9 +45,12 @@ export interface ToolResult {
 }
 
 export interface ExecutionResult {
-  agentId: string;
-  query: string;
+  agentId?: string;
+  query?: string;
+  status: 'completed' | 'error' | 'pending';
   result: string;
-  tokensUsed: number;
-  executionMs: number;
+  tokens_used: number;
+  execution_ms: number;
+  tool_calls?: Array<{ name: string; input: any; result: string }>;
+  error?: string;
 }

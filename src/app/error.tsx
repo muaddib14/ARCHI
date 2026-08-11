@@ -21,7 +21,7 @@ export default function Error({
         <p style={{ color: 'var(--stone)', fontSize: '14px', marginBottom: '24px', lineHeight: '1.6' }}>
           An error occurred while loading this page.
         </p>
-        <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', alignItems: 'center' }}>
           <button onClick={() => reset()} className="nav-cta" style={{ cursor: 'pointer', border: 'none' }}>
             Try Again
           </button>
