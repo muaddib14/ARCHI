@@ -1,0 +1,164 @@
+{
+  "tools": [
+    {
+      "id": "ethereum-rpc",
+      "name": "Ethereum RPC",
+      "icon": "⛓️",
+      "category": "blockchain",
+      "description": "Call Ethereum smart contracts and read blockchain state. Query balances, send transactions, and interact with DeFi protocols.",
+      "actions": 45
+    },
+    {
+      "id": "solana-rpc",
+      "name": "Solana RPC",
+      "icon": "◎",
+      "category": "blockchain",
+      "description": "Native Solana RPC integration. Deploy programs, execute instructions, and interact with the Solana ecosystem.",
+      "actions": 38
+    },
+    {
+      "id": "uniswap-v3",
+      "name": "Uniswap V3",
+      "icon": "🔄",
+      "category": "defi",
+      "description": "Swap tokens, provide liquidity, and execute complex trading strategies on Uniswap V3.",
+      "actions": 12
+    },
+    {
+      "id": "aave",
+      "name": "Aave Protocol",
+      "icon": "💰",
+      "category": "defi",
+      "description": "Lend, borrow, and earn yield on Aave. Access lending pools and manage your positions programmatically.",
+      "actions": 18
+    },
+    {
+      "id": "open-ai",
+      "name": "OpenAI API",
+      "icon": "🤖",
+      "category": "ai",
+      "description": "Use GPT models for text generation, embeddings, and assistants. Power your agent with advanced language models.",
+      "actions": 8
+    },
+    {
+      "id": "anthropic",
+      "name": "Anthropic Claude",
+      "icon": "🧠",
+      "category": "ai",
+      "description": "Access Claude models for reasoning, code generation, and complex analysis tasks.",
+      "actions": 7
+    },
+    {
+      "id": "http-webhook",
+      "name": "HTTP Webhook",
+      "icon": "🌐",
+      "category": "integration",
+      "description": "Send and receive HTTP requests. Integrate with any REST API or external service.",
+      "actions": 2
+    },
+    {
+      "id": "sendgrid",
+      "name": "SendGrid Email",
+      "icon": "📧",
+      "category": "communication",
+      "description": "Send transactional and marketing emails at scale with detailed analytics and templates.",
+      "actions": 6
+    },
+    {
+      "id": "slack",
+      "name": "Slack Messages",
+      "icon": "💬",
+      "category": "communication",
+      "description": "Send messages to Slack channels and DMs. Post updates, alerts, and agent notifications.",
+      "actions": 5
+    },
+    {
+      "id": "discord",
+      "name": "Discord Webhook",
+      "icon": "🎮",
+      "category": "communication",
+      "description": "Post messages to Discord channels. Send alerts, logs, and real-time updates to your server.",
+      "actions": 4
+    },
+    {
+      "id": "twitter",
+      "name": "Twitter/X API",
+      "icon": "𝕏",
+      "category": "social",
+      "description": "Post tweets, reply to mentions, and analyze social sentiment. Amplify your agent's reach.",
+      "actions": 9
+    },
+    {
+      "id": "coingecko",
+      "name": "CoinGecko API",
+      "icon": "📊",
+      "category": "data",
+      "description": "Real-time crypto prices, market data, and on-chain analytics. Query 10K+ tokens.",
+      "actions": 15
+    },
+    {
+      "id": "chainlink",
+      "name": "Chainlink Oracles",
+      "icon": "🔗",
+      "category": "oracle",
+      "description": "Access verified price feeds and execute cross-chain operations securely.",
+      "actions": 11
+    },
+    {
+      "id": "pyth",
+      "name": "Pyth Network",
+      "icon": "📡",
+      "category": "oracle",
+      "description": "Get low-latency price feeds for crypto and traditional assets on Solana and EVM chains.",
+      "actions": 10
+    },
+    {
+      "id": "ipfs",
+      "name": "IPFS Storage",
+      "icon": "📦",
+      "category": "storage",
+      "description": "Store and retrieve files on IPFS. Decentralized, content-addressed storage for your agent data.",
+      "actions": 8
+    },
+    {
+      "id": "supabase",
+      "name": "Supabase Database",
+      "icon": "🗄️",
+      "category": "database",
+      "description": "PostgreSQL database with real-time subscriptions. Store agent state, logs, and application data.",
+      "actions": 16
+    },
+    {
+      "id": "mongodb",
+      "name": "MongoDB Atlas",
+      "icon": "🍃",
+      "category": "database",
+      "description": "NoSQL database for flexible schema. Store JSON documents and query with aggregation pipelines.",
+      "actions": 14
+    },
+    {
+      "id": "github-api",
+      "name": "GitHub API",
+      "icon": "🐙",
+      "category": "developer",
+      "description": "Manage repositories, create issues, make pull requests. Automate your development workflow.",
+      "actions": 22
+    },
+    {
+      "id": "stripe",
+      "name": "Stripe Payments",
+      "icon": "💳",
+      "category": "payments",
+      "description": "Process payments, manage subscriptions, and handle billing. Accept credit cards and crypto.",
+      "actions": 19
+    },
+    {
+      "id": "google-sheets",
+      "name": "Google Sheets",
+      "icon": "📑",
+      "category": "productivity",
+      "description": "Read and write to Google Sheets. Use spreadsheets as simple databases for your agent.",
+      "actions": 11
+    }
+  ]
+}
