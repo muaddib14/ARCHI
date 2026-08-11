@@ -5,6 +5,7 @@ import Link from 'next/link';
 import toast, { Toaster } from 'react-hot-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { useWallet } from '@solana/wallet-adapter-react';
+import { SkeletonCard } from '@/components/SkeletonCard';
 
 interface AgentItem {
   id: string;
@@ -223,8 +224,10 @@ export default function AgentsPage() {
 
         {/* Agent Cards Grid */}
         {loading ? (
-          <div style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--purple-main)', fontWeight: '700' }}>
-            Loading Agent Registry...
+          <div className="knowledge-grid">
+            {[...Array(6)].map((_, i) => (
+              <SkeletonCard key={i} />
+            ))}
           </div>
         ) : filteredAgents.length > 0 ? (
           <div className="knowledge-grid">

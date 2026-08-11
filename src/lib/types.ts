@@ -53,4 +53,5 @@ export interface ExecutionResult {
   execution_ms: number;
   tool_calls?: Array<{ name: string; input: any; result: string }>;
   error?: string;
+  model_used?: string;
 }

@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
     if (interaction) {
       await db.query(
         `UPDATE agent_interactions
-         SET status = $1, result = $2, tokens_used = $3, execution_ms = $4, updated_at = NOW()
+         SET status = $1, result = $2, tokens_used = $3, execution_ms = $4
          WHERE id = $5`,
         [
           result.status === 'error' ? 'failed' : 'completed',

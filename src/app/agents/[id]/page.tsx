@@ -38,6 +38,7 @@ export default function AgentDetailPage() {
   const [query, setQuery] = useState('');
   const [executing, setExecuting] = useState(false);
   const [result, setResult] = useState('');
+  const [resultStatus, setResultStatus] = useState<'success' | 'error' | null>(null);
   const [executionTime, setExecutionTime] = useState(0);
 
   useEffect(() => {
@@ -79,6 +80,7 @@ export default function AgentDetailPage() {
     const loadingToast = toast.loading('Executing query...');
     setExecuting(true);
     setResult('');
+    setResultStatus(null);
     setExecutionTime(0);
 
     try {
@@ -89,19 +91,26 @@ export default function AgentDetailPage() {
         body: JSON.stringify({ agent_id: agentId, query })
       });
 
-      if (!res.ok) throw new Error('Execution failed');
       const data = await res.json();
       setExecutionTime(Date.now() - startTime);
-      setResult(data.result || 'No response');
+
+      const isError = !res.ok || data.status === 'error';
+      setResultStatus(isError ? 'error' : 'success');
+      setResult(isError ? (data.error || data.result || 'Execution failed') : (data.result || 'No response'));
 
       const interRes = await fetch(`/api/interactions?agent_id=${agentId}&limit=20`);
       const interData = await interRes.json();
       setInteractions(interData.interactions || []);
 
-      setQuery('');
-      toast.success('Query executed successfully!', { id: loadingToast });
+      if (isError) {
+        toast.error('Query execution failed', { id: loadingToast });
+      } else {
+        setQuery('');
+        toast.success('Query executed successfully!', { id: loadingToast });
+      }
     } catch (err) {
-      setResult(`Error: ${err instanceof Error ? err.message : 'Execution failed'}`);
+      setResultStatus('error');
+      setResult(err instanceof Error ? err.message : 'Execution failed');
       toast.error('Failed to execute query', { id: loadingToast });
     } finally {
       setExecuting(false);
@@ -121,8 +130,81 @@ export default function AgentDetailPage() {
 
   if (loading) {
     return (
-      <main style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--canvas)' }}>
-        <p style={{ color: 'var(--purple-main)', fontWeight: '700' }}>Loading agent...</p>
+      <main style={{ minHeight: '100vh', background: 'var(--canvas)' }}>
+        <div className="announcement-bar">
+          <span className="announcement-dot"></span>
+          <span>Agent Execution Console — Autonomous AI on Solana</span>
+        </div>
+
+        <div className="nav-wrapper" style={{ top: '36px' }}>
+          <nav className="nav-capsule">
+            <Link href="/" className="nav-brand">
+              <div className="nav-brand-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <path d="M12 2L2 7L12 12L22 7L12 2Z" />
+                  <path d="M2 17L12 22L22 17" />
+                  <path d="M2 12L12 17L22 12" />
+                </svg>
+              </div>
+              <span className="nav-brand-text">ARCHI</span>
+            </Link>
+          </nav>
+        </div>
+
+        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '130px 24px 60px' }}>
+          {/* Header Skeleton */}
+          <div style={{
+            background: '#ffffff',
+            border: '2.5px solid var(--purple-deep)',
+            borderRadius: 'var(--r-lg)',
+            padding: '36px',
+            marginBottom: '40px',
+            animation: 'pulse 2s infinite'
+          }}>
+            <div style={{ marginBottom: '20px' }}>
+              <div style={{
+                height: '32px',
+                background: 'var(--purple-soft)',
+                borderRadius: '8px',
+                marginBottom: '12px',
+                width: '40%'
+              }} />
+              <div style={{
+                height: '16px',
+                background: 'var(--purple-soft)',
+                borderRadius: '6px',
+                width: '60%'
+              }} />
+            </div>
+          </div>
+
+          {/* Two Column Skeleton */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '60px' }}>
+            <div style={{
+              background: '#ffffff',
+              border: '2.5px solid var(--purple-deep)',
+              borderRadius: 'var(--r-lg)',
+              padding: '24px',
+              height: '600px',
+              animation: 'pulse 2s infinite'
+            }} />
+            <div style={{
+              background: '#ffffff',
+              border: '2.5px solid var(--purple-deep)',
+              borderRadius: 'var(--r-lg)',
+              padding: '24px',
+              height: '600px',
+              animation: 'pulse 2s infinite'
+            }} />
+          </div>
+        </div>
+
+        <style>{`
+          @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+          }
+        `}</style>
       </main>
     );
   }
@@ -166,9 +248,9 @@ export default function AgentDetailPage() {
           </Link>
           <div className="nav-links">
             <Link href="/" className="nav-link">Home</Link>
-            <Link href="/agents" className="nav-link active">Agents</Link>
+            <Link href="/agents" className="nav-link active" style={{ color: 'var(--purple-main)', fontWeight: '800' }}>Agents</Link>
           </div>
-          <Link href="/agents" className="nav-cta">← Back</Link>
+          <Link href="/agents" className="nav-cta">← Back to Registry</Link>
         </nav>
       </div>
 
@@ -300,40 +382,68 @@ export default function AgentDetailPage() {
                 style={{
                   width: '100%',
                   padding: '12px',
-                  background: executing ? '#ccc' : 'var(--purple-main)',
+                  background: executing ? 'var(--pebble)' : 'var(--purple-main)',
                   color: 'white',
                   border: '2px solid var(--purple-deep)',
                   borderRadius: 'var(--r-pill)',
                   fontWeight: '700',
-                  cursor: executing ? 'not-allowed' : 'pointer',
+                  cursor: executing || !query.trim() ? 'not-allowed' : 'pointer',
                   fontSize: '14px',
                   boxShadow: '2px 2px 0px var(--purple-deep)',
-                  transition: 'all 0.15s ease'
+                  transition: 'all 0.15s ease',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px'
                 }}
                 onMouseOver={(e) => !executing && (e.currentTarget.style.transform = 'translate(-1px, -1px)')}
                 onMouseOut={(e) => (e.currentTarget.style.transform = 'translate(0, 0)')}
               >
-                {executing ? 'Executing...' : '⚡ Execute Query'}
+                {executing ? (
+                  <>
+                    <span
+                      style={{
+                        width: '14px',
+                        height: '14px',
+                        border: '2px solid rgba(255,255,255,0.4)',
+                        borderTopColor: '#ffffff',
+                        borderRadius: '50%',
+                        display: 'inline-block',
+                        animation: 'spin 0.7s linear infinite'
+                      }}
+                    />
+                    Executing...
+                  </>
+                ) : (
+                  <>⚡ Execute Query</>
+                )}
               </button>
+              <style>{`
+                @keyframes spin { to { transform: rotate(360deg); } }
+              `}</style>
             </form>
 
             {result && (
               <div style={{
-                background: 'var(--purple-soft)',
-                border: '1.5px solid var(--purple-deep)',
+                background: resultStatus === 'error' ? '#fdf2f8' : '#f0fdf4',
+                border: `1.5px solid ${resultStatus === 'error' ? 'var(--retro-coral)' : 'var(--retro-mint)'}`,
                 borderRadius: 'var(--r-sm)',
                 padding: '12px',
                 marginBottom: '16px'
               }}>
                 <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
                   fontSize: '11px',
                   fontWeight: '700',
-                  color: 'var(--purple-main)',
+                  color: resultStatus === 'error' ? '#9d174d' : '#166534',
                   marginBottom: '8px',
                   textTransform: 'uppercase',
                   letterSpacing: '0.5px'
                 }}>
-                  Response {executionTime > 0 && `(${executionTime}ms)`}
+                  <span>{resultStatus === 'error' ? '✕' : '✓'}</span>
+                  <span>{resultStatus === 'error' ? 'Error' : 'Response'} {executionTime > 0 && `(${executionTime}ms)`}</span>
                 </div>
                 <pre style={{
                   margin: 0,
@@ -341,8 +451,10 @@ export default function AgentDetailPage() {
                   overflow: 'auto',
                   maxHeight: '250px',
                   fontFamily: 'var(--font-mono)',
-                  color: 'var(--purple-deep)',
-                  lineHeight: '1.5'
+                  color: resultStatus === 'error' ? '#9d174d' : '#166534',
+                  lineHeight: '1.5',
+                  whiteSpace: 'pre-wrap',
+                  wordBreak: 'break-word'
                 }}>
                   {result}
                 </pre>
@@ -422,56 +534,81 @@ export default function AgentDetailPage() {
                 maxHeight: '500px',
                 overflow: 'auto'
               }}>
-                {interactions.map(interaction => (
-                  <div key={interaction.id} style={{
-                    border: '1.5px solid var(--purple-light)',
-                    borderRadius: 'var(--r-sm)',
-                    padding: '12px',
-                    background: 'var(--purple-soft)',
-                    transition: 'all 0.2s ease'
-                  }}>
-                    <div style={{
-                      fontSize: '10px',
-                      fontWeight: '700',
-                      color: 'var(--purple-main)',
-                      marginBottom: '6px',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.5px'
+                {interactions.map(interaction => {
+                  const isFailed = interaction.status === 'failed';
+                  return (
+                    <div key={interaction.id} style={{
+                      border: `1.5px solid ${isFailed ? 'var(--retro-coral)' : 'var(--purple-light)'}`,
+                      borderRadius: 'var(--r-sm)',
+                      padding: '12px',
+                      background: isFailed ? '#fdf2f8' : 'var(--purple-soft)',
+                      transition: 'all 0.2s ease'
                     }}>
-                      {new Date(interaction.created_at).toLocaleString()}
-                    </div>
-                    <p style={{
-                      fontSize: '13px',
-                      fontWeight: '700',
-                      color: 'var(--purple-deep)',
-                      margin: '0 0 6px 0',
-                      lineHeight: '1.4'
-                    }}>
-                      {interaction.query}
-                    </p>
-                    {interaction.result && (
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        marginBottom: '6px'
+                      }}>
+                        <div style={{
+                          fontSize: '10px',
+                          fontWeight: '700',
+                          color: isFailed ? '#9d174d' : 'var(--purple-main)',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.5px'
+                        }}>
+                          {new Date(interaction.created_at).toLocaleString()}
+                        </div>
+                        <div style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          padding: '2px 8px',
+                          borderRadius: 'var(--r-pill)',
+                          fontSize: '9px',
+                          fontWeight: '800',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.5px',
+                          background: isFailed ? '#fecdd3' : '#dcfce7',
+                          color: isFailed ? '#9d174d' : '#166534'
+                        }}>
+                          <span>{isFailed ? '✕' : '✓'}</span>
+                          {isFailed ? 'Failed' : 'Success'}
+                        </div>
+                      </div>
                       <p style={{
-                        fontSize: '12px',
-                        color: 'var(--stone)',
-                        margin: '0',
-                        maxHeight: '60px',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
+                        fontSize: '13px',
+                        fontWeight: '700',
+                        color: 'var(--purple-deep)',
+                        margin: '0 0 6px 0',
                         lineHeight: '1.4'
                       }}>
-                        {interaction.result.substring(0, 120)}...
+                        {interaction.query}
                       </p>
-                    )}
-                    <div style={{
-                      fontSize: '10px',
-                      color: 'var(--pebble)',
-                      marginTop: '6px',
-                      fontWeight: '600'
-                    }}>
-                      ⚡ {interaction.execution_ms}ms
+                      {interaction.result && (
+                        <p style={{
+                          fontSize: '12px',
+                          color: 'var(--stone)',
+                          margin: '0',
+                          maxHeight: '60px',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          lineHeight: '1.4'
+                        }}>
+                          {interaction.result.substring(0, 120)}{interaction.result.length > 120 ? '...' : ''}
+                        </p>
+                      )}
+                      <div style={{
+                        fontSize: '10px',
+                        color: 'var(--pebble)',
+                        marginTop: '6px',
+                        fontWeight: '600'
+                      }}>
+                        ⚡ {interaction.execution_ms}ms
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>

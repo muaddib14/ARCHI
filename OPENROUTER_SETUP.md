@@ -26,17 +26,68 @@ Add to `.env.local`:
 
 ```bash
 OPENROUTER_API_KEY=sk_live_xxxxxxxxxxxxx
-OPENROUTER_MODEL=mistralai/mixtral-8x7b-instruct
+OPENROUTER_MODEL=nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free
 ```
 
-**Recommended models** (budget-friendly for tool use):
+**Default model: free tier (no credits needed).** ARCHI uses OpenRouter's `:free` models
+(see https://openrouter.ai/collections/free-models) so it works out of the box without
+topping up credits. `mistralai/mixtral-8x7b-instruct` was tried first but is deprecated
+on OpenRouter (404, no endpoints) — replaced with the free-model chain below.
 
-| Model | Input | Output | Use Case |
-|-------|-------|--------|----------|
-| **Mixtral 8x7B** | $0.27 | $0.81 | Default (best quality/price) |
-| Llama 3.1 8B | $0.05 | $0.15 | Ultra-cheap |
-| Grok-2 | $0.50 | $1.50 | Advanced reasoning |
-| DeepSeek | $0.14 | $0.28 | Budget alternative |
+### Automatic Model Fallback
+
+`AgentExecutor` (`src/lib/executor.ts`) does not depend on a single model. It tries
+`OPENROUTER_MODEL` (or the built-in chain if unset) first, and if that call errors —
+rate limited, provider down, timeout, no endpoints — it automatically retries the next
+model in the fallback chain until one succeeds. This means a single free model going
+down does not take the whole agent down.
+
+```
+OPENROUTER_MODEL (your .env choice, tried first)
+  → nemotron-3-nano-omni-30b-a3b-reasoning:free
+  → nemotron-3-nano-30b-a3b:free
+  → nemotron-3.5-lightning:free
+  → gemma-4-26b-a4b-it:free
+  → laguna-s-2.1:free
+  → nemotron-3-super-120b-a12b:free
+  → nemotron-3-ultra-550b-a55b:free
+```
+
+### Free Model Benchmark (2026-08-11)
+
+Benchmarked all 14 models in OpenRouter's [free-models collection](https://openrouter.ai/collections/free-models)
+with a trivial prompt (`"Say hello in 3 words"`, `max_tokens: 30`). Ranked fastest → slowest,
+reliable general-chat models only:
+
+| Rank | Model | Latency | Notes |
+|------|-------|---------|-------|
+| 1 (fastest) | `nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free` | ~606ms | Clean response, current default |
+| 2 | `nvidia/nemotron-3-nano-30b-a3b:free` | ~696ms | Verbose reasoning trace, works |
+| 3 | `nvidia/nemotron-3.5-lightning:free` | ~723ms | Verbose reasoning trace, works |
+| 4 | `google/gemma-4-26b-a4b-it:free` | ~1522ms | Clean response |
+| 5 | `poolside/laguna-s-2.1:free` | ~2160ms | Clean response |
+| 6 | `nvidia/nemotron-3-super-120b-a12b:free` | ~6771ms | Slow but reliable |
+| 7 (slowest, in chain) | `nvidia/nemotron-3-ultra-550b-a55b:free` | ~10416ms | Most capable, but slow — last resort |
+
+**Excluded from the fallback chain** (errored or returned empty completions in testing —
+not suitable for general agent chat):
+
+| Model | Issue |
+|-------|-------|
+| `google/gemma-4-31b-it:free` | Provider returned error |
+| `nvidia/nemotron-nano-12b-v2-vl:free` | Upstream idle timeout |
+| `openai/gpt-oss-20b:free` | Empty completion |
+| `nvidia/nemotron-nano-9b-v2:free` | Empty completion |
+| `inclusionai/ling-3.0-tiny:free` | Empty completion (too small) |
+| `cohere/north-mini-code:free` | Empty completion (code-only model) |
+| `poolside/laguna-xs-2.1:free` | Empty completion (code-only model) |
+
+Re-run the benchmark yourself any time with the script pattern in
+`scripts/test-executor.ts`, or a quick loop calling `/chat/completions` for each
+model ID from https://openrouter.ai/api/v1/models filtered to `id.includes(':free')`.
+OpenRouter's free-tier lineup changes over time — re-benchmark periodically and update
+`FREE_MODEL_FALLBACK_CHAIN` in `src/lib/executor.ts` if a model disappears or a faster
+one shows up.
 
 Model IDs: https://openrouter.ai/docs/models
 
