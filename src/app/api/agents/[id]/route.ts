@@ -12,14 +12,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     );
 
     if (!agent) {
-      return NextResponse.json({
-        id,
-        name: 'Solana Arbitrage Sentinel',
-        description: 'Autonomous high-frequency arbitrage agent monitoring DEX price divergences.',
-        owner_wallet: '7v9W...xQ8z',
-        model: 'claude-3-5-sonnet',
-        status: 'active'
-      });
+      return NextResponse.json({ error: 'Agent not found' }, { status: 404 });
     }
 
     const tools = await db.query<AgentTool>(
@@ -33,5 +26,25 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     });
   } catch (error) {
     return NextResponse.json({ error: 'Failed to fetch agent' }, { status: 500 });
+  }
+}
+
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    const { id } = await params;
+
+    const agent = await db.queryOne<Agent>(
+      `UPDATE agents SET status = 'archived', updated_at = NOW() WHERE id = $1 RETURNING *`,
+      [id]
+    );
+
+    if (!agent) {
+      return NextResponse.json({ error: 'Agent not found' }, { status: 404 });
+    }
+
+    return NextResponse.json({ success: true, agent });
+  } catch (error) {
+    console.error('Agent delete error:', error);
+    return NextResponse.json({ error: 'Failed to delete agent' }, { status: 500 });
   }
 }

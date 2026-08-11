@@ -6,6 +6,7 @@ import toast, { Toaster } from 'react-hot-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { SkeletonCard } from '@/components/SkeletonCard';
+import { ConfirmModal } from '@/components/ConfirmModal';
 
 interface AgentItem {
   id: string;
@@ -28,6 +29,7 @@ export default function AgentsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStatus, setSelectedStatus] = useState<string>('All');
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
 
   // Form state for creating agent
   const [formData, setFormData] = useState({
@@ -96,6 +98,36 @@ export default function AgentsPage() {
     }
   };
 
+  const handleDeleteAgent = (e: React.MouseEvent, agentId: string, agentName: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDeleteTarget({ id: agentId, name: agentName });
+  };
+
+  const confirmDeleteAgent = async () => {
+    if (!deleteTarget) return;
+    const { id: agentId, name: agentName } = deleteTarget;
+    setDeleteTarget(null);
+
+    const loadingToast = toast.loading('Deleting agent...');
+
+    try {
+      const res = await fetch(`/api/agents/${agentId}`, { method: 'DELETE' });
+
+      if (!res.ok) {
+        const error = await res.json();
+        toast.error(`Failed to delete agent: ${error.error || 'Unknown error'}`, { id: loadingToast });
+        return;
+      }
+
+      setAgents(prev => prev.filter(a => a.id !== agentId));
+      toast.success(`Agent "${agentName}" deleted successfully!`, { id: loadingToast });
+    } catch (err) {
+      console.error('Error deleting agent:', err);
+      toast.error('Failed to delete agent. Please try again.', { id: loadingToast });
+    }
+  };
+
   if (!isAuthenticated) {
     const phantomWallet = wallets.find(w => w.adapter.name === 'Phantom');
     return (
@@ -126,6 +158,16 @@ export default function AgentsPage() {
   return (
     <main style={{ minHeight: '100vh', background: 'var(--canvas, #faf5ff)' }}>
       <Toaster position="bottom-right" />
+      <ConfirmModal
+        open={!!deleteTarget}
+        title="Delete Agent?"
+        message={`"${deleteTarget?.name}" will be archived and removed from the registry. This action cannot be undone from the UI.`}
+        confirmLabel="Delete"
+        cancelLabel="Cancel"
+        danger
+        onConfirm={confirmDeleteAgent}
+        onCancel={() => setDeleteTarget(null)}
+      />
       {/* Top Announcement Bar */}
       <div className="announcement-bar">
         <span className="announcement-dot"></span>
@@ -231,73 +273,135 @@ export default function AgentsPage() {
           </div>
         ) : filteredAgents.length > 0 ? (
           <div className="knowledge-grid">
-            {filteredAgents.map(agent => (
-              <Link href={`/agents/${agent.id}`} key={agent.id}>
-                <div className="knowledge-card" style={{ cursor: 'pointer', transition: 'all 0.2s ease' }}>
-                  <div>
-                    <div className="knowledge-card-header">
-                      <div className="knowledge-card-icon" style={{
-                        background: agent.status === 'active' ? '#dcfce7' : 'var(--purple-soft)',
-                        color: agent.status === 'active' ? '#166534' : 'var(--stone)',
-                        fontSize: '20px'
-                      }}>
-                        {agent.status === 'active' ? '●' : '○'}
-                      </div>
-                      <div style={{ flex: 1 }}>
-                        <h3 className="knowledge-card-title" style={{ marginBottom: '4px' }}>{agent.name}</h3>
-                        <div style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '6px',
-                          padding: '3px 10px',
-                          background: agent.status === 'active' ? '#dcfce7' : 'var(--purple-soft)',
-                          color: agent.status === 'active' ? '#166534' : 'var(--stone)',
-                          fontSize: '11px',
-                          fontWeight: '700',
-                          borderRadius: 'var(--r-pill)',
-                          border: `1px solid ${agent.status === 'active' ? '#86efac' : 'rgba(109, 40, 217, 0.2)'}`
+            {filteredAgents.map(agent => {
+              const isActive = agent.status === 'active';
+              return (
+                <div className="knowledge-card" key={agent.id} style={{ position: 'relative', transition: 'all 0.2s ease' }}>
+                  <button
+                    onClick={(e) => handleDeleteAgent(e, agent.id, agent.name)}
+                    title="Delete agent"
+                    aria-label={`Delete ${agent.name}`}
+                    style={{
+                      position: 'absolute',
+                      top: '14px',
+                      right: '14px',
+                      width: '28px',
+                      height: '28px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      background: '#ffffff',
+                      border: '1.5px solid rgba(244, 63, 94, 0.3)',
+                      borderRadius: '50%',
+                      color: 'var(--retro-coral)',
+                      cursor: 'pointer',
+                      zIndex: 2,
+                      transition: 'all 0.15s ease'
+                    }}
+                    onMouseOver={(e) => {
+                      e.currentTarget.style.background = 'var(--retro-coral)';
+                      e.currentTarget.style.color = '#ffffff';
+                      e.currentTarget.style.borderColor = 'var(--retro-coral)';
+                    }}
+                    onMouseOut={(e) => {
+                      e.currentTarget.style.background = '#ffffff';
+                      e.currentTarget.style.color = 'var(--retro-coral)';
+                      e.currentTarget.style.borderColor = 'rgba(244, 63, 94, 0.3)';
+                    }}
+                  >
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                      <path d="M3 6h18" />
+                      <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                      <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                    </svg>
+                  </button>
+
+                  <Link href={`/agents/${agent.id}`} style={{ display: 'block', cursor: 'pointer' }}>
+                    <div>
+                      <div className="knowledge-card-header">
+                        <div className="knowledge-card-icon" style={{
+                          background: isActive ? '#dcfce7' : 'var(--purple-soft)',
+                          color: isActive ? '#166534' : 'var(--stone)',
+                          position: 'relative'
                         }}>
-                          <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'currentColor' }}></span>
-                          {agent.status.charAt(0).toUpperCase() + agent.status.slice(1)}
+                          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                            <rect x="5" y="9" width="14" height="11" rx="3" />
+                            <path d="M9 9V6a3 3 0 0 1 6 0v3" />
+                            <circle cx="9.5" cy="14.5" r="1.4" fill="currentColor" stroke="none" />
+                            <circle cx="14.5" cy="14.5" r="1.4" fill="currentColor" stroke="none" />
+                            <path d="M9.5 17.5h5" />
+                          </svg>
+                          {isActive && (
+                            <span style={{
+                              position: 'absolute',
+                              top: '-2px',
+                              right: '-2px',
+                              width: '10px',
+                              height: '10px',
+                              borderRadius: '50%',
+                              background: '#22c55e',
+                              border: '2px solid #ffffff',
+                              boxShadow: '0 0 0 2px rgba(34, 197, 94, 0.25)',
+                              animation: 'pulse-dot 2s ease-in-out infinite'
+                            }} />
+                          )}
+                        </div>
+                        <div style={{ flex: 1 }}>
+                          <h3 className="knowledge-card-title" style={{ marginBottom: '4px' }}>{agent.name}</h3>
+                          <div style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            padding: '3px 10px',
+                            background: isActive ? '#dcfce7' : 'var(--purple-soft)',
+                            color: isActive ? '#166534' : 'var(--stone)',
+                            fontSize: '11px',
+                            fontWeight: '700',
+                            borderRadius: 'var(--r-pill)',
+                            border: `1px solid ${isActive ? '#86efac' : 'rgba(109, 40, 217, 0.2)'}`
+                          }}>
+                            <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'currentColor' }}></span>
+                            {agent.status.charAt(0).toUpperCase() + agent.status.slice(1)}
+                          </div>
+                        </div>
+                      </div>
+
+                      <p className="knowledge-card-desc">{agent.description || 'No description provided'}</p>
+
+                      <div style={{
+                        display: 'flex',
+                        gap: '12px',
+                        fontSize: '12px',
+                        color: 'var(--stone)',
+                        marginBottom: '16px',
+                        paddingBottom: '12px',
+                        borderBottom: '1px solid var(--purple-soft)'
+                      }}>
+                        <div>
+                          <div style={{ fontWeight: '700', marginBottom: '2px' }}>Model</div>
+                          <div style={{ fontSize: '11px', fontFamily: 'var(--font-mono)' }}>{agent.model.split('-').pop()}</div>
+                        </div>
+                        <div style={{ flex: 1, textAlign: 'right' }}>
+                          <div style={{ fontWeight: '700', marginBottom: '2px' }}>Owner</div>
+                          <div style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', opacity: 0.7 }}>{agent.owner_wallet.slice(0, 6)}...{agent.owner_wallet.slice(-4)}</div>
                         </div>
                       </div>
                     </div>
 
-                    <p className="knowledge-card-desc">{agent.description || 'No description provided'}</p>
-
                     <div style={{
                       display: 'flex',
-                      gap: '12px',
+                      gap: '8px',
                       fontSize: '12px',
-                      color: 'var(--stone)',
-                      marginBottom: '16px',
-                      paddingBottom: '12px',
-                      borderBottom: '1px solid var(--purple-soft)'
+                      color: 'var(--purple-main)',
+                      fontWeight: '700'
                     }}>
-                      <div>
-                        <div style={{ fontWeight: '700', marginBottom: '2px' }}>Model</div>
-                        <div style={{ fontSize: '11px', fontFamily: 'var(--font-mono)' }}>{agent.model.split('-').pop()}</div>
-                      </div>
-                      <div style={{ flex: 1, textAlign: 'right' }}>
-                        <div style={{ fontWeight: '700', marginBottom: '2px' }}>Owner</div>
-                        <div style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', opacity: 0.7 }}>{agent.owner_wallet.slice(0, 6)}...{agent.owner_wallet.slice(-4)}</div>
-                      </div>
+                      <span>View Details</span>
+                      <span>→</span>
                     </div>
-                  </div>
-
-                  <div style={{
-                    display: 'flex',
-                    gap: '8px',
-                    fontSize: '12px',
-                    color: 'var(--purple-main)',
-                    fontWeight: '700'
-                  }}>
-                    <span>View Details</span>
-                    <span>→</span>
-                  </div>
+                  </Link>
                 </div>
-              </Link>
-            ))}
+              );
+            })}
           </div>
         ) : (
           <div style={{
@@ -365,46 +469,114 @@ export default function AgentsPage() {
 
       {/* Create Agent Modal */}
       {showCreateModal && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: 'rgba(0,0,0,0.5)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1000
-        }}>
-          <div style={{
-            background: 'white',
-            borderRadius: '12px',
-            padding: '2rem',
-            maxWidth: '500px',
-            width: '90%',
-            maxHeight: '90vh',
-            overflowY: 'auto'
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-              <h2 style={{ margin: 0 }}>Deploy New Agent</h2>
+        <div
+          onClick={() => setShowCreateModal(false)}
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(30, 27, 75, 0.55)',
+            backdropFilter: 'blur(4px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 2000,
+            padding: '20px'
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: '#ffffff',
+              border: '2.5px solid var(--purple-deep)',
+              borderRadius: 'var(--r-lg)',
+              boxShadow: 'var(--shadow-retro-lg)',
+              padding: '32px',
+              maxWidth: '520px',
+              width: '100%',
+              maxHeight: '88vh',
+              overflowY: 'auto'
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+              <div
+                style={{
+                  width: '48px',
+                  height: '48px',
+                  borderRadius: '50%',
+                  background: 'var(--purple-soft)',
+                  border: '2px solid var(--purple-deep)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'var(--purple-main)',
+                  marginBottom: '20px'
+                }}
+              >
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                  <rect x="5" y="9" width="14" height="11" rx="3" />
+                  <path d="M9 9V6a3 3 0 0 1 6 0v3" />
+                  <circle cx="9.5" cy="14.5" r="1.4" fill="currentColor" stroke="none" />
+                  <circle cx="14.5" cy="14.5" r="1.4" fill="currentColor" stroke="none" />
+                  <path d="M9.5 17.5h5" />
+                </svg>
+              </div>
               <button
                 onClick={() => setShowCreateModal(false)}
+                aria-label="Close"
                 style={{
-                  background: 'none',
-                  border: 'none',
-                  fontSize: '1.5rem',
+                  width: '32px',
+                  height: '32px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  background: 'var(--purple-soft)',
+                  border: '1.5px solid var(--purple-light)',
+                  borderRadius: '50%',
+                  fontSize: '18px',
+                  fontWeight: '700',
                   cursor: 'pointer',
-                  color: '#999'
+                  color: 'var(--purple-deep)',
+                  lineHeight: 1
                 }}
               >
                 ×
               </button>
             </div>
 
-            <form onSubmit={handleCreateAgent} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <h2 style={{
+              fontSize: '24px',
+              fontWeight: '900',
+              color: 'var(--purple-deep)',
+              marginBottom: '6px',
+              letterSpacing: '-0.01em'
+            }}>
+              Deploy New Agent
+            </h2>
+            <p style={{
+              fontSize: '13px',
+              color: 'var(--stone)',
+              marginBottom: '24px',
+              lineHeight: '1.5'
+            }}>
+              Configure your autonomous AI agent. It will be registered on-chain under your connected wallet.
+            </p>
+
+            <form onSubmit={handleCreateAgent} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
               <div>
-                <label style={{ display: 'block', fontWeight: '600', marginBottom: '0.5rem' }}>Agent Name</label>
+                <label style={{
+                  display: 'block',
+                  fontWeight: '700',
+                  fontSize: '12px',
+                  color: 'var(--purple-deep)',
+                  marginBottom: '8px',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px'
+                }}>
+                  Agent Name
+                </label>
                 <input
                   type="text"
                   required
@@ -412,40 +584,78 @@ export default function AgentsPage() {
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   style={{
                     width: '100%',
-                    padding: '0.75rem',
-                    border: '1px solid #ddd',
-                    borderRadius: '6px'
+                    padding: '12px',
+                    border: '2px solid var(--purple-deep)',
+                    borderRadius: 'var(--r-sm)',
+                    fontFamily: 'var(--font-body)',
+                    fontSize: '14px',
+                    color: 'var(--purple-deep)',
+                    boxShadow: '2px 2px 0px var(--purple-soft)',
+                    outline: 'none'
                   }}
                   placeholder="e.g., Trading Sentinel"
                 />
               </div>
 
               <div>
-                <label style={{ display: 'block', fontWeight: '600', marginBottom: '0.5rem' }}>Description</label>
+                <label style={{
+                  display: 'block',
+                  fontWeight: '700',
+                  fontSize: '12px',
+                  color: 'var(--purple-deep)',
+                  marginBottom: '8px',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px'
+                }}>
+                  Description
+                </label>
                 <textarea
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   style={{
                     width: '100%',
-                    padding: '0.75rem',
-                    border: '1px solid #ddd',
-                    borderRadius: '6px',
-                    minHeight: '80px'
+                    padding: '12px',
+                    border: '2px solid var(--purple-deep)',
+                    borderRadius: 'var(--r-sm)',
+                    fontFamily: 'var(--font-body)',
+                    fontSize: '14px',
+                    color: 'var(--purple-deep)',
+                    minHeight: '70px',
+                    resize: 'vertical',
+                    boxShadow: '2px 2px 0px var(--purple-soft)',
+                    outline: 'none'
                   }}
                   placeholder="What does this agent do?"
                 />
               </div>
 
               <div>
-                <label style={{ display: 'block', fontWeight: '600', marginBottom: '0.5rem' }}>Model</label>
+                <label style={{
+                  display: 'block',
+                  fontWeight: '700',
+                  fontSize: '12px',
+                  color: 'var(--purple-deep)',
+                  marginBottom: '8px',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px'
+                }}>
+                  Model
+                </label>
                 <select
                   value={formData.model}
                   onChange={(e) => setFormData({ ...formData, model: e.target.value })}
                   style={{
                     width: '100%',
-                    padding: '0.75rem',
-                    border: '1px solid #ddd',
-                    borderRadius: '6px'
+                    padding: '12px',
+                    border: '2px solid var(--purple-deep)',
+                    borderRadius: 'var(--r-sm)',
+                    fontFamily: 'var(--font-body)',
+                    fontSize: '14px',
+                    color: 'var(--purple-deep)',
+                    boxShadow: '2px 2px 0px var(--purple-soft)',
+                    outline: 'none',
+                    background: '#ffffff',
+                    cursor: 'pointer'
                   }}
                 >
                   <option>claude-3-5-sonnet-20241022</option>
@@ -454,23 +664,49 @@ export default function AgentsPage() {
               </div>
 
               <div>
-                <label style={{ display: 'block', fontWeight: '600', marginBottom: '0.5rem' }}>System Prompt</label>
+                <label style={{
+                  display: 'block',
+                  fontWeight: '700',
+                  fontSize: '12px',
+                  color: 'var(--purple-deep)',
+                  marginBottom: '8px',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px'
+                }}>
+                  System Prompt
+                </label>
                 <textarea
                   value={formData.system_prompt}
                   onChange={(e) => setFormData({ ...formData, system_prompt: e.target.value })}
                   style={{
                     width: '100%',
-                    padding: '0.75rem',
-                    border: '1px solid #ddd',
-                    borderRadius: '6px',
-                    minHeight: '100px'
+                    padding: '12px',
+                    border: '2px solid var(--purple-deep)',
+                    borderRadius: 'var(--r-sm)',
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: '13px',
+                    color: 'var(--purple-deep)',
+                    minHeight: '90px',
+                    resize: 'vertical',
+                    boxShadow: '2px 2px 0px var(--purple-soft)',
+                    outline: 'none'
                   }}
                   placeholder="Define the agent's behavior and personality..."
                 />
               </div>
 
               <div>
-                <label style={{ display: 'block', fontWeight: '600', marginBottom: '0.5rem' }}>Owner Wallet</label>
+                <label style={{
+                  display: 'block',
+                  fontWeight: '700',
+                  fontSize: '12px',
+                  color: 'var(--purple-deep)',
+                  marginBottom: '8px',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px'
+                }}>
+                  Owner Wallet
+                </label>
                 <input
                   type="text"
                   readOnly
@@ -478,45 +714,58 @@ export default function AgentsPage() {
                   value={wallet || ''}
                   style={{
                     width: '100%',
-                    padding: '0.75rem',
-                    border: '1px solid #ddd',
-                    borderRadius: '6px',
-                    backgroundColor: '#f5f5f5',
-                    color: '#999'
+                    padding: '12px',
+                    border: '2px solid var(--purple-light)',
+                    borderRadius: 'var(--r-sm)',
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: '12px',
+                    background: 'var(--purple-soft)',
+                    color: 'var(--stone)'
                   }}
                 />
               </div>
 
-              <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
-                <button
-                  type="submit"
-                  style={{
-                    flex: 1,
-                    padding: '0.75rem 1.5rem',
-                    background: 'var(--purple-main, #667eea)',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '6px',
-                    fontWeight: '600',
-                    cursor: 'pointer'
-                  }}
-                >
-                  Deploy Agent
-                </button>
+              <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
                 <button
                   type="button"
                   onClick={() => setShowCreateModal(false)}
                   style={{
                     flex: 1,
-                    padding: '0.75rem 1.5rem',
-                    background: '#f5f5f5',
-                    border: 'none',
-                    borderRadius: '6px',
-                    fontWeight: '600',
-                    cursor: 'pointer'
+                    padding: '12px 20px',
+                    background: '#ffffff',
+                    color: 'var(--purple-deep)',
+                    border: '2px solid var(--purple-deep)',
+                    borderRadius: 'var(--r-pill)',
+                    fontWeight: '700',
+                    fontSize: '14px',
+                    cursor: 'pointer',
+                    boxShadow: 'var(--shadow-retro-sm)',
+                    transition: 'all 0.15s ease'
                   }}
+                  onMouseOver={(e) => (e.currentTarget.style.transform = 'translate(-1px, -1px)')}
+                  onMouseOut={(e) => (e.currentTarget.style.transform = 'translate(0, 0)')}
                 >
                   Cancel
+                </button>
+                <button
+                  type="submit"
+                  style={{
+                    flex: 1,
+                    padding: '12px 20px',
+                    background: 'var(--purple-main)',
+                    color: '#ffffff',
+                    border: '2px solid var(--purple-deep)',
+                    borderRadius: 'var(--r-pill)',
+                    fontWeight: '700',
+                    fontSize: '14px',
+                    cursor: 'pointer',
+                    boxShadow: '2px 2px 0px var(--purple-deep)',
+                    transition: 'all 0.15s ease'
+                  }}
+                  onMouseOver={(e) => (e.currentTarget.style.transform = 'translate(-1px, -1px)')}
+                  onMouseOut={(e) => (e.currentTarget.style.transform = 'translate(0, 0)')}
+                >
+                  ⚡ Deploy Agent
                 </button>
               </div>
             </form>
