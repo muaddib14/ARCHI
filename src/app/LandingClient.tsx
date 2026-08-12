@@ -465,69 +465,89 @@ export default function LandingClient() {
         <div className="marquee">
           <div className="marquee-track">
             <div className="logo-item">
-              <svg viewBox="0 0 24 24" fill="currentColor">
-                <path d="M17.28 6.882a.647.647 0 0 0-.502-.24H4.532a.324.324 0 0 0-.228.553l2.486 2.486a.647.647 0 0 0 .502.24h12.246a.324.324 0 0 0 .228-.554L17.28 6.882Z" />
-              </svg>
+              <span
+                className="logo-item-mark"
+                style={{ WebkitMaskImage: 'url(https://cdn.jsdelivr.net/npm/simple-icons@latest/icons/solana.svg)', maskImage: 'url(https://cdn.jsdelivr.net/npm/simple-icons@latest/icons/solana.svg)' }}
+                aria-hidden="true"
+              />
               <span>Solana</span>
             </div>
             <div className="logo-item">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M12 2L2 19h20L12 2z" />
+                <circle cx="12" cy="5" r="3" />
+                <line x1="12" y1="22" x2="12" y2="8" />
+                <path d="M5 12H2a10 10 0 0 0 20 0h-3" />
               </svg>
               <span>Anchor</span>
             </div>
             <div className="logo-item">
-              <svg viewBox="0 0 24 24" fill="currentColor">
-                <path d="M21.362 9.354H12V.396a.396.396 0 0 0-.716-.233L2.203 12.424l-.401.562a.795.795 0 0 0 .645 1.257H12v8.958a.396.396 0 0 0 .716.233l9.081-12.261.401-.562a.795.795 0 0 0-.645-1.257h-.191Z" />
-              </svg>
+              <span
+                className="logo-item-mark"
+                style={{ WebkitMaskImage: 'url(https://cdn.jsdelivr.net/npm/simple-icons@latest/icons/supabase.svg)', maskImage: 'url(https://cdn.jsdelivr.net/npm/simple-icons@latest/icons/supabase.svg)' }}
+                aria-hidden="true"
+              />
               <span>Supabase</span>
             </div>
             <div className="logo-item">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <ellipse cx="12" cy="5" rx="9" ry="3" />
-                <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3" />
+                <circle cx="18" cy="5" r="3" />
+                <circle cx="6" cy="12" r="3" />
+                <circle cx="18" cy="19" r="3" />
+                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+                <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
               </svg>
               <span>pgvector</span>
             </div>
             <div className="logo-item">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <polyline points="16 18 22 12 16 6" />
-                <polyline points="8 6 2 12 8 18" />
-              </svg>
+              <span
+                className="logo-item-mark"
+                style={{ WebkitMaskImage: 'url(https://cdn.jsdelivr.net/npm/simple-icons@latest/icons/nextdotjs.svg)', maskImage: 'url(https://cdn.jsdelivr.net/npm/simple-icons@latest/icons/nextdotjs.svg)' }}
+                aria-hidden="true"
+              />
               <span>Next.js</span>
             </div>
 
             {/* Duplicate */}
             <div className="logo-item">
-              <svg viewBox="0 0 24 24" fill="currentColor">
-                <path d="M17.28 6.882a.647.647 0 0 0-.502-.24H4.532a.324.324 0 0 0-.228.553l2.486 2.486a.647.647 0 0 0 .502.24h12.246a.324.324 0 0 0 .228-.554L17.28 6.882Z" />
-              </svg>
+              <span
+                className="logo-item-mark"
+                style={{ WebkitMaskImage: 'url(https://cdn.jsdelivr.net/npm/simple-icons@latest/icons/solana.svg)', maskImage: 'url(https://cdn.jsdelivr.net/npm/simple-icons@latest/icons/solana.svg)' }}
+                aria-hidden="true"
+              />
               <span>Solana</span>
             </div>
             <div className="logo-item">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M12 2L2 19h20L12 2z" />
+                <circle cx="12" cy="5" r="3" />
+                <line x1="12" y1="22" x2="12" y2="8" />
+                <path d="M5 12H2a10 10 0 0 0 20 0h-3" />
               </svg>
               <span>Anchor</span>
             </div>
             <div className="logo-item">
-              <svg viewBox="0 0 24 24" fill="currentColor">
-                <path d="M21.362 9.354H12V.396a.396.396 0 0 0-.716-.233L2.203 12.424l-.401.562a.795.795 0 0 0 .645 1.257H12v8.958a.396.396 0 0 0 .716.233l9.081-12.261.401-.562a.795.795 0 0 0-.645-1.257h-.191Z" />
-              </svg>
+              <span
+                className="logo-item-mark"
+                style={{ WebkitMaskImage: 'url(https://cdn.jsdelivr.net/npm/simple-icons@latest/icons/supabase.svg)', maskImage: 'url(https://cdn.jsdelivr.net/npm/simple-icons@latest/icons/supabase.svg)' }}
+                aria-hidden="true"
+              />
               <span>Supabase</span>
             </div>
             <div className="logo-item">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <ellipse cx="12" cy="5" rx="9" ry="3" />
-                <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3" />
+                <circle cx="18" cy="5" r="3" />
+                <circle cx="6" cy="12" r="3" />
+                <circle cx="18" cy="19" r="3" />
+                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+                <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
               </svg>
               <span>pgvector</span>
             </div>
             <div className="logo-item">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <polyline points="16 18 22 12 16 6" />
-                <polyline points="8 6 2 12 8 18" />
-              </svg>
+              <span
+                className="logo-item-mark"
+                style={{ WebkitMaskImage: 'url(https://cdn.jsdelivr.net/npm/simple-icons@latest/icons/nextdotjs.svg)', maskImage: 'url(https://cdn.jsdelivr.net/npm/simple-icons@latest/icons/nextdotjs.svg)' }}
+                aria-hidden="true"
+              />
               <span>Next.js</span>
             </div>
           </div>
@@ -844,10 +864,11 @@ export default function LandingClient() {
             <div className="tech-visual">
               <div className="tech-badge-glow" />
               <div className="tech-badge">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <circle cx="12" cy="12" r="10" />
-                  <line x1="12" y1="8" x2="12" y2="12" />
-                </svg>
+                <span
+                  className="tech-badge-mark"
+                  style={{ WebkitMaskImage: 'url(https://cdn.jsdelivr.net/npm/simple-icons@latest/icons/solana.svg)', maskImage: 'url(https://cdn.jsdelivr.net/npm/simple-icons@latest/icons/solana.svg)' }}
+                  aria-label="Solana"
+                />
               </div>
             </div>
             <div className="tech-card-name">solana</div>

@@ -782,6 +782,18 @@ a { color: inherit; text-decoration: none; }
 .logo-item svg { width: 34px; height: 34px; color: var(--purple-deep); }
 .logo-item span { font-size: 20px; font-weight: 800; color: var(--purple-deep); }
 
+.logo-item-mark {
+  width: 30px;
+  height: 30px;
+  background-color: var(--purple-deep);
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+}
+
 /* ============================================================
    BENEFITS GRID — Soft Cards
    ============================================================ */
@@ -1472,6 +1484,18 @@ a { color: inherit; text-decoration: none; }
 }
 
 .tech-badge svg { width: 24px; height: 24px; }
+
+.tech-badge-mark {
+  width: 24px;
+  height: 24px;
+  background-color: rgba(255, 255, 255, 0.9);
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+}
 
 .tech-badge-glow {
   position: absolute;
