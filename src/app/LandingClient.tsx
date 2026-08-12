@@ -1,37 +1,269 @@
 'use client';
 
-import React, { useCallback } from 'react';
+import React, { useCallback, useRef, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { motion, AnimatePresence, useScroll, useTransform, useReducedMotion } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
+
+interface MockupRow {
+  title: string;
+  meta: string;
+  status: 'active' | 'idle';
+  avatar: 1 | 2 | 3 | 4;
+}
+
+interface AgentTab {
+  id: string;
+  label: string;
+  headerTitle: string;
+  glowColor: string;
+  rows: MockupRow[];
+}
+
+const AGENT_TABS: AgentTab[] = [
+  {
+    id: 'trading',
+    label: 'Trading Sentinel',
+    headerTitle: 'Trading & Execution',
+    glowColor: '#7c71e8',
+    rows: [
+      { title: 'Trading Sentinel', meta: 'claude-3-sonnet / Last run 2m ago / 847 interactions', status: 'active', avatar: 1 },
+      { title: 'SOL/USDC Arbitrage', meta: 'Jupiter route / executed 90s ago / +0.42% spread', status: 'active', avatar: 3 },
+      { title: 'Price Feed Monitor', meta: 'Pyth oracle / streaming / 12,204 ticks today', status: 'active', avatar: 4 },
+    ],
+  },
+  {
+    id: 'data',
+    label: 'Data Harvester',
+    headerTitle: 'Data & Retrieval',
+    glowColor: '#22d3ee',
+    rows: [
+      { title: 'Data Harvester', meta: 'gpt-4-turbo / Last run 18m ago / 1,204 interactions', status: 'active', avatar: 2 },
+      { title: 'Vector Index Sync', meta: 'pgvector / 4,880 embeddings indexed', status: 'active', avatar: 4 },
+      { title: 'RAG Query Cache', meta: 'knowledge base / 92% hit rate', status: 'idle', avatar: 1 },
+    ],
+  },
+  {
+    id: 'auditor',
+    label: 'Contract Auditor',
+    headerTitle: 'Security & Audits',
+    glowColor: '#f59e0b',
+    rows: [
+      { title: 'Contract Auditor', meta: 'claude-3-opus / Last run 1h ago / 312 interactions', status: 'idle', avatar: 3 },
+      { title: 'Anchor Program Scan', meta: 'lib.rs / 3 findings / 0 critical', status: 'active', avatar: 1 },
+      { title: 'Audit Log Writer', meta: 'on-chain / 312 entries committed', status: 'active', avatar: 4 },
+    ],
+  },
+];
+
+const EASE_OUT_EXPRESSIVE = [0.22, 1, 0.36, 1] as const;
+
+interface MegaMenuItem {
+  label: string;
+  desc?: string;
+  href: string;
+}
+
+interface MegaMenuColumn {
+  title: string;
+  items: MegaMenuItem[];
+}
+
+interface MegaMenuDef {
+  align: 'left' | 'center' | 'right';
+  columns: MegaMenuColumn[];
+}
+
+const MEGA_MENUS: Record<string, MegaMenuDef> = {
+  why: {
+    align: 'left',
+    columns: [
+      {
+        title: 'Why ARCHI',
+        items: [
+          { label: 'You Own Your Agents', desc: 'Full control, no vendor lock-in', href: '#why' },
+          { label: 'Every Action Auditable', desc: 'On-chain logs, nothing hidden', href: '#why' },
+          { label: 'On Solana', desc: 'Sub-second finality, low fees', href: '#why' },
+        ],
+      },
+    ],
+  },
+  knowledge: {
+    align: 'center',
+    columns: [
+      {
+        title: 'Popular Integrations',
+        items: [
+          { label: 'Solana Agent Kit', href: '/knowledge/solana-agent-kit' },
+          { label: 'Anchor Lang', href: '/knowledge/anchor-lang' },
+          { label: 'OpenAI', href: '/knowledge/openai' },
+        ],
+      },
+      {
+        title: 'Resources',
+        items: [
+          { label: 'Browse full directory', href: '/knowledge' },
+          { label: 'Request a platform', href: '/knowledge#request' },
+        ],
+      },
+    ],
+  },
+  compare: {
+    align: 'center',
+    columns: [
+      {
+        title: 'ARCHI vs Centralized',
+        items: [
+          { label: 'Ownership', desc: 'You own your agent, not rented', href: '#compare' },
+          { label: 'Transparency', desc: 'On-chain audit trail', href: '#compare' },
+          { label: 'Cost Model', desc: 'One-time mint + gas', href: '#compare' },
+        ],
+      },
+    ],
+  },
+  tech: {
+    align: 'right',
+    columns: [
+      {
+        title: 'Stack',
+        items: [
+          { label: 'Next.js', desc: 'App Router + TypeScript', href: '#tech' },
+          { label: 'Rust + Anchor', desc: 'Solana smart contracts', href: '#tech' },
+          { label: 'PostgreSQL', desc: 'Supabase + pgvector', href: '#tech' },
+          { label: 'Solana', desc: 'On-chain execution & audit', href: '#tech' },
+        ],
+      },
+    ],
+  },
+};
+
+const NAV_ITEMS: { id: string; label: string; href: string; highlight?: boolean }[] = [
+  { id: 'why', label: 'Why ARCHI', href: '#why' },
+  { id: 'knowledge', label: 'Knowledge', href: '/knowledge', highlight: true },
+  { id: 'compare', label: 'Compare', href: '#compare' },
+  { id: 'tech', label: 'Tech', href: '#tech' },
+];
+
+const revealContainer = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.1 } },
+};
+
+const revealItem = {
+  hidden: { opacity: 0, y: 24, scale: 0.96 },
+  show: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.6, ease: EASE_OUT_EXPRESSIVE } },
+};
 
 export default function LandingClient() {
   const router = useRouter();
   const { isAuthenticated } = useAuth();
+  const prefersReducedMotion = useReducedMotion();
 
   const handleBuildAgent = useCallback(() => {
     router.push('/agents');
   }, [router]);
 
+  // --- T1 + T2: scroll-linked hero zoom + glow ---
+  const heroRef = useRef<HTMLElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: heroRef,
+    offset: ['start start', 'end start'],
+  });
+
+  const rawHeadlineOpacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
+  const rawHeadlineY = useTransform(scrollYProgress, [0, 0.5], [0, -40]);
+  const rawMockupScale = useTransform(scrollYProgress, [0, 0.6], [0.9, 1.02]);
+  const rawMockupY = useTransform(scrollYProgress, [0, 0.6], [30, 0]);
+
+  const headlineOpacity = prefersReducedMotion ? 1 : rawHeadlineOpacity;
+  const headlineY = prefersReducedMotion ? 0 : rawHeadlineY;
+  const mockupScale = prefersReducedMotion ? 1 : rawMockupScale;
+  const mockupY = prefersReducedMotion ? 0 : rawMockupY;
+
+  // --- T3: agent tab switcher, auto-rotate every 4s, pause on interaction ---
+  const [activeTab, setActiveTab] = useState(0);
+  const [isHovering, setIsHovering] = useState(false);
+
+  useEffect(() => {
+    if (isHovering || prefersReducedMotion) return;
+    const timer = setInterval(() => {
+      setActiveTab((prev) => (prev + 1) % AGENT_TABS.length);
+    }, 4000);
+    return () => clearInterval(timer);
+  }, [isHovering, prefersReducedMotion]);
+
+  const tab = AGENT_TABS[activeTab];
+
+  // --- T6: mega-menu nav dropdown ---
+  const [openMenu, setOpenMenu] = useState<string | null>(null);
+
+  // --- T7: background gradient transition tied to whole-page scroll ---
+  const { scrollYProgress: pageScrollProgress } = useScroll();
+  const rawBgColor = useTransform(
+    pageScrollProgress,
+    [0, 0.06, 0.22, 1],
+    ['#2e1065', '#4c1d95', '#f3e8ff', '#faf5ff']
+  );
+  const bgColor = prefersReducedMotion ? 'var(--canvas)' : rawBgColor;
+
   return (
-    <main>
+    <motion.main style={{ background: bgColor }}>
       {/* NAVIGATION */}
       <div className="nav-wrapper">
         <nav className="nav-capsule">
           <a href="#" className="nav-brand">
             <div className="nav-brand-icon">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                <path d="M12 2L2 7L12 12L22 7L12 2Z" />
-                <path d="M2 17L12 22L22 17" />
-                <path d="M2 12L12 17L22 12" />
-              </svg>
+              <img src="/logo.png" alt="ARCHI" />
             </div>
             <span className="nav-brand-text">ARCHI</span>
           </a>
           <div className="nav-links">
-            <a href="#why" className="nav-link">Why ARCHI</a>
-            <a href="/knowledge" className="nav-link" style={{ color: 'var(--purple-main)', fontWeight: '800' }}>Knowledge</a>
-            <a href="#compare" className="nav-link">Compare</a>
-            <a href="#tech" className="nav-link">Tech</a>
+            {NAV_ITEMS.map((item) => {
+              const menu = MEGA_MENUS[item.id];
+              return (
+                <div
+                  key={item.id}
+                  className="nav-item"
+                  onMouseEnter={() => setOpenMenu(item.id)}
+                  onMouseLeave={() => setOpenMenu(null)}
+                >
+                  <a
+                    href={item.href}
+                    className="nav-link"
+                    style={item.highlight ? { color: 'var(--purple-main)', fontWeight: '800' } : undefined}
+                  >
+                    {item.label}
+                  </a>
+                  {menu && (
+                    <div className="mega-menu-wrap" data-align={menu.align}>
+                      <AnimatePresence>
+                        {openMenu === item.id && (
+                          <motion.div
+                            className="mega-menu"
+                            initial={{ opacity: 0, y: 8, scale: 0.98 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: 8, scale: 0.98 }}
+                            transition={{ duration: 0.18, ease: EASE_OUT_EXPRESSIVE }}
+                          >
+                            {menu.columns.map((col) => (
+                              <div className="mega-menu-col" key={col.title}>
+                                <div className="mega-menu-col-title">{col.title}</div>
+                                {col.items.map((mi) => (
+                                  <a href={mi.href} className="mega-menu-item" key={mi.label}>
+                                    <div className="mega-menu-item-label">{mi.label}</div>
+                                    {mi.desc && <div className="mega-menu-item-desc">{mi.desc}</div>}
+                                  </a>
+                                ))}
+                              </div>
+                            ))}
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
           <button className="nav-cta" onClick={handleBuildAgent}>
             Build Agent
@@ -40,14 +272,14 @@ export default function LandingClient() {
       </div>
 
       {/* HERO */}
-      <section className="hero">
+      <section className="hero" ref={heroRef}>
         <span className="hero-eyebrow">
           <span className="hero-eyebrow-dot"></span>
           Agentic AI on Solana
         </span>
-        <h1 className="hero-headline">
+        <motion.h1 className="hero-headline" style={{ opacity: headlineOpacity, y: headlineY }}>
           Your AI Agents.<br />On Solana. <em>Own Them.</em>
-        </h1>
+        </motion.h1>
         <p className="hero-sub">
           Deploy autonomous AI agents with full ownership and transparency. No rent to OpenAI. No black boxes. Your infrastructure, on-chain.
         </p>
@@ -63,56 +295,79 @@ export default function LandingClient() {
           </a>
         </div>
 
+        {/* Agent Tab Switcher */}
+        <div
+          className="hero-tabs"
+          onMouseEnter={() => setIsHovering(true)}
+          onMouseLeave={() => setIsHovering(false)}
+        >
+          {AGENT_TABS.map((t, i) => (
+            <button
+              key={t.id}
+              className={`hero-tab ${i === activeTab ? 'active' : ''}`}
+              style={{ position: 'relative' }}
+              onClick={() => setActiveTab(i)}
+            >
+              {i === activeTab && (
+                <motion.span
+                  className="hero-tab-bg"
+                  layoutId="hero-tab-bg"
+                  transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+                />
+              )}
+              <span style={{ position: 'relative', zIndex: 1 }}>{t.label}</span>
+            </button>
+          ))}
+        </div>
+
         {/* Hero Mockup */}
-        <div className="hero-mockup">
-          <div className="mockup-frame">
+        <motion.div className="hero-mockup" style={{ scale: mockupScale, y: mockupY }}>
+          <div className="hero-glow" style={{ ['--glow-color' as string]: tab.glowColor }} />
+          <div className="mockup-frame" style={{ position: 'relative', zIndex: 1 }}>
             <div className="mockup-bar">
               <span className="mockup-dot mockup-dot--r"></span>
               <span className="mockup-dot mockup-dot--y"></span>
               <span className="mockup-dot mockup-dot--g"></span>
               <span className="mockup-url">app.arc.fun/agents</span>
             </div>
-            <div className="mockup-screen">
-              <div className="mockup-sidebar">
-                <div className="mockup-sidebar-brand">ARCHI Dashboard</div>
-                <div className="mockup-sidebar-item active">Dashboard</div>
-                <div className="mockup-sidebar-item">Agent Registry</div>
-                <div className="mockup-sidebar-item">Agent Forge</div>
-                <div className="mockup-sidebar-item">Audit Logs</div>
-              </div>
-              <div className="mockup-main">
-                <div className="mockup-header">
-                  <span className="mockup-header-title">Active AI Agents</span>
-                  <span className="mockup-header-btn">+ Deploy Agent</span>
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={tab.id}
+                className="mockup-screen"
+                initial={prefersReducedMotion ? undefined : { opacity: 0, filter: 'blur(6px)' }}
+                animate={{ opacity: 1, filter: 'blur(0px)' }}
+                exit={prefersReducedMotion ? undefined : { opacity: 0, filter: 'blur(6px)' }}
+                transition={{ duration: 0.4, ease: EASE_OUT_EXPRESSIVE }}
+              >
+                <div className="mockup-sidebar">
+                  <div className="mockup-sidebar-brand">ARCHI Dashboard</div>
+                  <div className="mockup-sidebar-item active">Dashboard</div>
+                  <div className="mockup-sidebar-item">Agent Registry</div>
+                  <div className="mockup-sidebar-item">Agent Forge</div>
+                  <div className="mockup-sidebar-item">Audit Logs</div>
                 </div>
-                <div className="mockup-row">
-                  <div className="mockup-avatar mockup-avatar--1"></div>
-                  <div className="mockup-row-content">
-                    <div className="mockup-row-title">Trading Sentinel</div>
-                    <div className="mockup-row-meta">claude-3-sonnet / Last run 2m ago / 847 interactions</div>
+                <div className="mockup-main">
+                  <div className="mockup-header">
+                    <span className="mockup-header-title">{tab.headerTitle}</span>
+                    <span className="mockup-header-btn">+ Deploy Agent</span>
                   </div>
-                  <span className="mockup-row-badge mockup-row-badge--active">Active</span>
+                  {tab.rows.map((row) => (
+                    <div className="mockup-row" key={row.title}>
+                      <div className={`mockup-avatar mockup-avatar--${row.avatar}`}></div>
+                      <div className="mockup-row-content">
+                        <div className="mockup-row-title">{row.title}</div>
+                        <div className="mockup-row-meta">{row.meta}</div>
+                      </div>
+                      <span className={`mockup-row-badge mockup-row-badge--${row.status}`}>
+                        {row.status === 'active' ? 'Active' : 'Idle'}
+                      </span>
+                    </div>
+                  ))}
                 </div>
-                <div className="mockup-row">
-                  <div className="mockup-avatar mockup-avatar--2"></div>
-                  <div className="mockup-row-content">
-                    <div className="mockup-row-title">Data Harvester</div>
-                    <div className="mockup-row-meta">gpt-4-turbo / Last run 18m ago / 1,204 interactions</div>
-                  </div>
-                  <span className="mockup-row-badge mockup-row-badge--active">Active</span>
-                </div>
-                <div className="mockup-row">
-                  <div className="mockup-avatar mockup-avatar--3"></div>
-                  <div className="mockup-row-content">
-                    <div className="mockup-row-title">Contract Auditor</div>
-                    <div className="mockup-row-meta">claude-3-opus / Last run 1h ago / 312 interactions</div>
-                  </div>
-                  <span className="mockup-row-badge mockup-row-badge--idle">Idle</span>
-                </div>
-              </div>
-            </div>
+              </motion.div>
+            </AnimatePresence>
           </div>
-        </div>
+        </motion.div>
 
         {/* Landscape Silhouette */}
         <div className="hero-landscape">
@@ -208,8 +463,14 @@ export default function LandingClient() {
           </p>
         </div>
 
-        <div className="benefits-grid">
-          <div className="benefit-card">
+        <motion.div
+          className="benefits-grid"
+          variants={prefersReducedMotion ? undefined : revealContainer}
+          initial={prefersReducedMotion ? undefined : 'hidden'}
+          whileInView={prefersReducedMotion ? undefined : 'show'}
+          viewport={{ once: true, amount: 0.3 }}
+        >
+          <motion.div className="benefit-card" variants={prefersReducedMotion ? undefined : revealItem}>
             <div className="benefit-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.78 7.78 5.5 5.5 0 0 1 7.78-7.78zm0 0L15.5 7.5" />
@@ -217,8 +478,8 @@ export default function LandingClient() {
             </div>
             <div className="benefit-title">You Own Your Agents</div>
             <p className="benefit-text">Deploy with full control. No vendor lock-in. Your agents, your rules — not rented from a centralized provider.</p>
-          </div>
-          <div className="benefit-card">
+          </motion.div>
+          <motion.div className="benefit-card" variants={prefersReducedMotion ? undefined : revealItem}>
             <div className="benefit-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
@@ -227,8 +488,8 @@ export default function LandingClient() {
             </div>
             <div className="benefit-title">Every Action Auditable</div>
             <p className="benefit-text">Every action is logged on-chain. No one — not even us — can hide or alter what your agent did. Nothing hidden.</p>
-          </div>
-          <div className="benefit-card">
+          </motion.div>
+          <motion.div className="benefit-card" variants={prefersReducedMotion ? undefined : revealItem}>
             <div className="benefit-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
@@ -236,8 +497,8 @@ export default function LandingClient() {
             </div>
             <div className="benefit-title">On Solana for Cost and Speed</div>
             <p className="benefit-text">Leverage Solana's sub-second finality and minimal gas fees. Production-grade performance without the heavy bill.</p>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       </section>
 
       {/* COMPARISON */}
@@ -246,7 +507,13 @@ export default function LandingClient() {
         <h2 className="section-heading">Why decentralized AI?</h2>
         <p className="section-desc">Centralized providers own your data and meter your usage. ARCHI puts you in control.</p>
 
-        <div className="comparison-wrapper">
+        <motion.div
+          className="comparison-wrapper"
+          initial={prefersReducedMotion ? undefined : { opacity: 0, y: 24, scale: 0.98 }}
+          whileInView={prefersReducedMotion ? undefined : { opacity: 1, y: 0, scale: 1 }}
+          viewport={{ once: true, amount: 0.3 }}
+          transition={{ duration: 0.6, ease: EASE_OUT_EXPRESSIVE }}
+        >
           <table className="comparison-table">
             <thead>
               <tr>
@@ -278,7 +545,7 @@ export default function LandingClient() {
               </tr>
             </tbody>
           </table>
-        </div>
+        </motion.div>
       </section>
 
       {/* TECH STACK */}
@@ -289,8 +556,14 @@ export default function LandingClient() {
           <p className="section-desc">Open-source, battle-tested components chosen for reliability at scale.</p>
         </div>
 
-        <div className="tech-grid">
-          <div className="tech-card">
+        <motion.div
+          className="tech-grid"
+          variants={prefersReducedMotion ? undefined : revealContainer}
+          initial={prefersReducedMotion ? undefined : 'hidden'}
+          whileInView={prefersReducedMotion ? undefined : 'show'}
+          viewport={{ once: true, amount: 0.3 }}
+        >
+          <motion.div className="tech-card" variants={prefersReducedMotion ? undefined : revealItem}>
             <div className="tech-card-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <polyline points="16 18 22 12 16 6" />
@@ -299,8 +572,8 @@ export default function LandingClient() {
             </div>
             <div className="tech-card-name">Next.js</div>
             <div className="tech-card-desc">App Router + TypeScript</div>
-          </div>
-          <div className="tech-card">
+          </motion.div>
+          <motion.div className="tech-card" variants={prefersReducedMotion ? undefined : revealItem}>
             <div className="tech-card-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
@@ -308,8 +581,8 @@ export default function LandingClient() {
             </div>
             <div className="tech-card-name">Rust + Anchor</div>
             <div className="tech-card-desc">Solana smart contracts</div>
-          </div>
-          <div className="tech-card">
+          </motion.div>
+          <motion.div className="tech-card" variants={prefersReducedMotion ? undefined : revealItem}>
             <div className="tech-card-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <ellipse cx="12" cy="5" rx="9" ry="3" />
@@ -318,8 +591,8 @@ export default function LandingClient() {
             </div>
             <div className="tech-card-name">PostgreSQL</div>
             <div className="tech-card-desc">Supabase + pgvector</div>
-          </div>
-          <div className="tech-card">
+          </motion.div>
+          <motion.div className="tech-card" variants={prefersReducedMotion ? undefined : revealItem}>
             <div className="tech-card-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <circle cx="12" cy="12" r="10" />
@@ -328,8 +601,8 @@ export default function LandingClient() {
             </div>
             <div className="tech-card-name">Solana</div>
             <div className="tech-card-desc">On-chain execution & audit</div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       </section>
 
       {/* CTA */}
@@ -376,6 +649,6 @@ export default function LandingClient() {
           <span>Next.js Retro Purple Edition</span>
         </div>
       </footer>
-    </main>
+    </motion.main>
   );
 }
