@@ -409,7 +409,7 @@ export default function LandingClient() {
               <span className="mockup-dot mockup-dot--r"></span>
               <span className="mockup-dot mockup-dot--y"></span>
               <span className="mockup-dot mockup-dot--g"></span>
-              <span className="mockup-url">app.arc.fun/agents</span>
+              <span className="mockup-url">www.archiagentbuilder.xyz</span>
             </div>
             <AnimatePresence mode="wait">
               <motion.div
