@@ -2,7 +2,7 @@
 
 import React, { useCallback, useRef, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { motion, AnimatePresence, useScroll, useTransform, useReducedMotion } from 'framer-motion';
+import { motion, AnimatePresence, useScroll, useTransform, useReducedMotion, useInView } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
 import { KNOWLEDGE_ITEMS, CATEGORIES } from '@/data/knowledgeData';
 
@@ -209,6 +209,37 @@ function SectionDivider() {
       </span>
       <span className="section-divider-line" />
     </div>
+  );
+}
+
+function CountUp({ value, prefix = '', suffix = '', duration = 1.4 }: { value: number; prefix?: string; suffix?: string; duration?: number }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const inView = useInView(ref, { once: true, amount: 0.6 });
+  const prefersReducedMotion = useReducedMotion();
+  const [display, setDisplay] = useState(0);
+
+  useEffect(() => {
+    if (!inView) return;
+    if (prefersReducedMotion) { setDisplay(value); return; }
+    let raf: number;
+    let start: number | null = null;
+    const tick = (ts: number) => {
+      if (start === null) start = ts;
+      const progress = Math.min((ts - start) / (duration * 1000), 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setDisplay(Math.round(value * eased));
+      if (progress < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [inView, value, duration, prefersReducedMotion]);
+
+  return (
+    <span ref={ref} className="count-up">
+      {prefix}
+      {display}
+      {suffix}
+    </span>
   );
 }
 
@@ -741,24 +772,30 @@ export default function LandingClient() {
       </section>
 
       {/* LIVE STATS */}
-      <div className="stats-band">
-        <div className="stat-item">
-          <div className="stat-value">{totalTools}+</div>
+      <motion.div
+        className="stats-band"
+        variants={prefersReducedMotion ? undefined : revealContainer}
+        initial={prefersReducedMotion ? undefined : 'hidden'}
+        whileInView={prefersReducedMotion ? undefined : 'show'}
+        viewport={{ once: true, amount: 0.4 }}
+      >
+        <motion.div className="stat-item" variants={prefersReducedMotion ? undefined : revealItem}>
+          <div className="stat-value"><CountUp value={totalTools} suffix="+" /></div>
           <div className="stat-label">Integrations</div>
-        </div>
-        <div className="stat-item">
-          <div className="stat-value">{totalCategories}</div>
+        </motion.div>
+        <motion.div className="stat-item" variants={prefersReducedMotion ? undefined : revealItem}>
+          <div className="stat-value"><CountUp value={totalCategories} /></div>
           <div className="stat-label">Categories</div>
-        </div>
-        <div className="stat-item">
-          <div className="stat-value">7</div>
+        </motion.div>
+        <motion.div className="stat-item" variants={prefersReducedMotion ? undefined : revealItem}>
+          <div className="stat-value"><CountUp value={7} /></div>
           <div className="stat-label">Fallback Models</div>
-        </div>
-        <div className="stat-item">
-          <div className="stat-value">$0</div>
+        </motion.div>
+        <motion.div className="stat-item" variants={prefersReducedMotion ? undefined : revealItem}>
+          <div className="stat-value"><CountUp value={0} prefix="$" /></div>
           <div className="stat-label">Required to Start</div>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
 
       {/* KNOWLEDGE SHOWCASE */}
       <section className="section" id="integrations">
