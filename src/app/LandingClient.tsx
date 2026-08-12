@@ -4,6 +4,7 @@ import React, { useCallback, useRef, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence, useScroll, useTransform, useReducedMotion } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
+import { KNOWLEDGE_ITEMS, CATEGORIES } from '@/data/knowledgeData';
 
 interface MockupRow {
   title: string;
@@ -144,6 +145,73 @@ const NAV_ITEMS: { id: string; label: string; href: string; highlight?: boolean 
   { id: 'tech', label: 'Tech', href: '#tech' },
 ];
 
+const HOW_IT_WORKS_STEPS = [
+  {
+    title: 'Connect Wallet',
+    desc: 'Authenticate with Phantom. No email, no password — your wallet is your identity.',
+  },
+  {
+    title: 'Configure Agent',
+    desc: 'Name it, write a system prompt, pick tools. Deployed to the on-chain registry in seconds.',
+  },
+  {
+    title: 'Execute & Monitor',
+    desc: 'Run queries through the execution console. Every response and tool call logged live.',
+  },
+  {
+    title: 'Audit Anytime',
+    desc: 'Full interaction history and audit trail — nothing hidden, nothing editable after the fact.',
+  },
+];
+
+const SHOWCASE_CATEGORIES = [
+  'Solana & Web3',
+  'AI Models',
+  'Web Scraping',
+  'CRM & Sales',
+  'Cloud & Infrastructure',
+  'Security & Identity',
+];
+
+const FAQ_ITEMS = [
+  {
+    q: 'Which AI models does ARCHI use?',
+    a: 'ARCHI routes through OpenRouter with automatic fallback across 7 free-tier models (Nemotron, Gemma, and more) — so a single model outage never takes your agent down. Bring your own OpenRouter key to unlock paid models like GPT-4 or Claude.',
+  },
+  {
+    q: 'Do I need my own API key?',
+    a: 'You need an OpenRouter API key and a Solana wallet (Phantom). No separate Anthropic or OpenAI account required — OpenRouter handles routing to whichever model you configure.',
+  },
+  {
+    q: 'Which blockchain does ARCHI run on?',
+    a: 'Solana. Agent metadata and interaction history are designed around an on-chain registry and a Postgres audit log, so every action stays traceable.',
+  },
+  {
+    q: 'Is agent activity really auditable?',
+    a: 'Every query, tool call, and response is logged with a timestamp and execution time in the interaction history — visible on your agent’s detail page, not hidden behind a vendor dashboard.',
+  },
+  {
+    q: 'Can I add my own tools?',
+    a: 'Yes. ARCHI ships with a tool registry (Solana swaps, NFT minting, vector search, price feeds) plus a 72-integration knowledge directory you can wire into any agent’s system prompt.',
+  },
+];
+
+function SectionDivider() {
+  return (
+    <div className="section-divider" aria-hidden="true">
+      <span className="section-divider-line" />
+      <span className="section-divider-icon">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+          <path d="M12 2L2 7L12 12L22 7L12 2Z" />
+          <path d="M2 17L12 22L22 17" />
+          <path d="M2 12L12 17L22 12" />
+        </svg>
+      </span>
+      <span className="section-divider-line" />
+    </div>
+  );
+}
+
 const revealContainer = {
   hidden: {},
   show: { transition: { staggerChildren: 0.1 } },
@@ -205,6 +273,18 @@ export default function LandingClient() {
     ['#2e1065', '#4c1d95', '#f3e8ff', '#faf5ff']
   );
   const bgColor = prefersReducedMotion ? 'var(--canvas)' : rawBgColor;
+
+  // --- Knowledge showcase: real counts + sample tools per category ---
+  const totalTools = KNOWLEDGE_ITEMS.length;
+  const totalCategories = CATEGORIES.length - 1; // exclude 'All'
+  const showcaseCards = SHOWCASE_CATEGORIES.map((category) => {
+    const items = KNOWLEDGE_ITEMS.filter((item) => item.category === category);
+    return {
+      category,
+      count: items.length,
+      sample: items.slice(0, 3).map((i) => i.name),
+    };
+  });
 
   return (
     <motion.main style={{ background: bgColor }}>
@@ -471,33 +551,124 @@ export default function LandingClient() {
           viewport={{ once: true, amount: 0.3 }}
         >
           <motion.div className="benefit-card" variants={prefersReducedMotion ? undefined : revealItem}>
-            <div className="benefit-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.78 7.78 5.5 5.5 0 0 1 7.78-7.78zm0 0L15.5 7.5" />
-              </svg>
+            <div className="benefit-visual">
+              <div className="benefit-badge-glow" />
+              <div className="benefit-badge">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <rect x="4" y="10" width="16" height="10" rx="2" />
+                  <path d="M8 10V7a4 4 0 018 0v3" />
+                </svg>
+              </div>
             </div>
             <div className="benefit-title">You Own Your Agents</div>
             <p className="benefit-text">Deploy with full control. No vendor lock-in. Your agents, your rules — not rented from a centralized provider.</p>
           </motion.div>
           <motion.div className="benefit-card" variants={prefersReducedMotion ? undefined : revealItem}>
-            <div className="benefit-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                <circle cx="12" cy="12" r="3" />
-              </svg>
+            <div className="benefit-visual">
+              <div className="benefit-ledger">
+                <div className="benefit-ledger-row" />
+                <div className="benefit-ledger-row" />
+                <div className="benefit-ledger-row" />
+                <div className="benefit-ledger-row benefit-ledger-row--done">
+                  <div className="benefit-ledger-seal">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                      <path d="M4 12l6 6L20 6" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
             </div>
             <div className="benefit-title">Every Action Auditable</div>
             <p className="benefit-text">Every action is logged on-chain. No one — not even us — can hide or alter what your agent did. Nothing hidden.</p>
           </motion.div>
           <motion.div className="benefit-card" variants={prefersReducedMotion ? undefined : revealItem}>
-            <div className="benefit-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
-              </svg>
+            <div className="benefit-visual">
+              <div className="benefit-gauge">
+                <div className="benefit-gauge-arc" />
+                <div className="benefit-gauge-mask" />
+                {[0, 30, 60, 90, 120, 150, 180].map((deg) => (
+                  <div key={deg} className="benefit-gauge-tick" style={{ transform: `translateX(-50%) rotate(${deg - 90}deg)` }} />
+                ))}
+                <div className="benefit-gauge-needle" />
+                <div className="benefit-gauge-hub" />
+              </div>
             </div>
             <div className="benefit-title">On Solana for Cost and Speed</div>
             <p className="benefit-text">Leverage Solana's sub-second finality and minimal gas fees. Production-grade performance without the heavy bill.</p>
           </motion.div>
+        </motion.div>
+
+        <motion.div
+          className="model-card"
+          variants={prefersReducedMotion ? undefined : revealItem}
+          initial={prefersReducedMotion ? undefined : 'hidden'}
+          whileInView={prefersReducedMotion ? undefined : 'show'}
+          viewport={{ once: true, amount: 0.3 }}
+        >
+          <div className="model-card-icons">
+            <div className="model-card-icon">
+              <span
+                className="model-card-icon-mark"
+                style={{ WebkitMaskImage: 'url(https://cdn.jsdelivr.net/npm/simple-icons@latest/icons/openai.svg)', maskImage: 'url(https://cdn.jsdelivr.net/npm/simple-icons@latest/icons/openai.svg)' }}
+                aria-label="OpenAI GPT"
+              />
+            </div>
+            <div className="model-card-icon">
+              <span
+                className="model-card-icon-mark"
+                style={{ WebkitMaskImage: 'url(https://cdn.jsdelivr.net/npm/simple-icons@latest/icons/anthropic.svg)', maskImage: 'url(https://cdn.jsdelivr.net/npm/simple-icons@latest/icons/anthropic.svg)' }}
+                aria-label="Anthropic Claude"
+              />
+            </div>
+            <div className="model-card-icon model-card-icon--main">
+              <img src="/logo.png" alt="ARCHI" />
+            </div>
+            <div className="model-card-icon">
+              <span
+                className="model-card-icon-mark"
+                style={{ WebkitMaskImage: 'url(https://cdn.jsdelivr.net/npm/simple-icons@latest/icons/googlegemini.svg)', maskImage: 'url(https://cdn.jsdelivr.net/npm/simple-icons@latest/icons/googlegemini.svg)' }}
+                aria-label="Google Gemini"
+              />
+            </div>
+            <div className="model-card-icon">
+              <span
+                className="model-card-icon-mark"
+                style={{ WebkitMaskImage: 'url(https://cdn.jsdelivr.net/npm/simple-icons@latest/icons/meta.svg)', maskImage: 'url(https://cdn.jsdelivr.net/npm/simple-icons@latest/icons/meta.svg)' }}
+                aria-label="Meta Llama"
+              />
+            </div>
+          </div>
+          <div className="model-card-title">Bring Your Own Model</div>
+          <p className="model-card-text">
+            Your agent isn&apos;t locked to one AI provider. Route through Claude, GPT, Gemini, Llama, and more via OpenRouter — swap the model, keep the agent.
+          </p>
+        </motion.div>
+      </section>
+
+      <SectionDivider />
+
+      {/* HOW IT WORKS */}
+      <section className="section" id="how">
+        <div className="section-centered">
+          <span className="section-eyebrow">How It Works</span>
+          <h2 className="section-heading">From wallet to deployed agent.</h2>
+          <p className="section-desc">Four steps. No infrastructure to manage, no vendor to trust blindly.</p>
+        </div>
+
+        <motion.div
+          className="steps-grid"
+          variants={prefersReducedMotion ? undefined : revealContainer}
+          initial={prefersReducedMotion ? undefined : 'hidden'}
+          whileInView={prefersReducedMotion ? undefined : 'show'}
+          viewport={{ once: true, amount: 0.3 }}
+        >
+          {HOW_IT_WORKS_STEPS.map((step, i) => (
+            <motion.div className="step-card" key={step.title} variants={prefersReducedMotion ? undefined : revealItem}>
+              <div className="step-number">{i + 1}</div>
+              <div className="step-title">{step.title}</div>
+              <p className="step-desc">{step.desc}</p>
+            </motion.div>
+          ))}
         </motion.div>
       </section>
 
@@ -548,6 +719,73 @@ export default function LandingClient() {
         </motion.div>
       </section>
 
+      {/* LIVE STATS */}
+      <div className="stats-band">
+        <div className="stat-item">
+          <div className="stat-value">{totalTools}+</div>
+          <div className="stat-label">Integrations</div>
+        </div>
+        <div className="stat-item">
+          <div className="stat-value">{totalCategories}</div>
+          <div className="stat-label">Categories</div>
+        </div>
+        <div className="stat-item">
+          <div className="stat-value">7</div>
+          <div className="stat-label">Fallback Models</div>
+        </div>
+        <div className="stat-item">
+          <div className="stat-value">$0</div>
+          <div className="stat-label">Required to Start</div>
+        </div>
+      </div>
+
+      {/* KNOWLEDGE SHOWCASE */}
+      <section className="section" id="integrations">
+        <div className="section-centered">
+          <span className="section-eyebrow">Knowledge Directory</span>
+          <h2 className="section-heading">Plug in any tool your agent needs.</h2>
+          <p className="section-desc">
+            {totalTools} integrations across {totalCategories} categories — from on-chain DeFi to web scraping to CRM. All documented, all ready to wire into a system prompt.
+          </p>
+        </div>
+
+        <motion.div
+          className="knowledge-grid"
+          style={{ marginTop: '48px', marginBottom: '32px' }}
+          variants={prefersReducedMotion ? undefined : revealContainer}
+          initial={prefersReducedMotion ? undefined : 'hidden'}
+          whileInView={prefersReducedMotion ? undefined : 'show'}
+          viewport={{ once: true, amount: 0.3 }}
+        >
+          {showcaseCards.map((card) => (
+            <motion.div className="knowledge-card" key={card.category} variants={prefersReducedMotion ? undefined : revealItem}>
+              <div>
+                <div className="knowledge-card-header">
+                  <div className="knowledge-card-icon">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M12 2L2 7L12 12L22 7L12 2Z" />
+                      <path d="M2 17L12 22L22 17" />
+                      <path d="M2 12L12 17L22 12" />
+                    </svg>
+                  </div>
+                  <div className="knowledge-card-title">{card.category}</div>
+                </div>
+                <p className="knowledge-card-desc">{card.sample.join(', ')}{card.count > card.sample.length ? ', and more' : ''}</p>
+              </div>
+              <div className="knowledge-card-meta">
+                <span className="knowledge-card-actions">{card.count} tools</span>
+              </div>
+            </motion.div>
+          ))}
+        </motion.div>
+
+        <div style={{ textAlign: 'center' }}>
+          <a href="/knowledge" className="knowledge-hero-link">Browse the full directory →</a>
+        </div>
+      </section>
+
+      <SectionDivider />
+
       {/* TECH STACK */}
       <section className="section" id="tech">
         <div className="section-centered">
@@ -564,56 +802,97 @@ export default function LandingClient() {
           viewport={{ once: true, amount: 0.3 }}
         >
           <motion.div className="tech-card" variants={prefersReducedMotion ? undefined : revealItem}>
-            <div className="tech-card-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <polyline points="16 18 22 12 16 6" />
-                <polyline points="8 6 2 12 8 18" />
-              </svg>
+            <div className="tech-visual">
+              <div className="tech-badge-glow" />
+              <div className="tech-badge">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <polyline points="16 18 22 12 16 6" />
+                  <polyline points="8 6 2 12 8 18" />
+                </svg>
+              </div>
             </div>
-            <div className="tech-card-name">Next.js</div>
+            <div className="tech-card-name">next.js</div>
             <div className="tech-card-desc">App Router + TypeScript</div>
           </motion.div>
           <motion.div className="tech-card" variants={prefersReducedMotion ? undefined : revealItem}>
-            <div className="tech-card-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-              </svg>
+            <div className="tech-visual">
+              <div className="tech-badge-glow" />
+              <div className="tech-badge">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                </svg>
+              </div>
             </div>
-            <div className="tech-card-name">Rust + Anchor</div>
+            <div className="tech-card-name">rust + anchor</div>
             <div className="tech-card-desc">Solana smart contracts</div>
           </motion.div>
           <motion.div className="tech-card" variants={prefersReducedMotion ? undefined : revealItem}>
-            <div className="tech-card-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <ellipse cx="12" cy="5" rx="9" ry="3" />
-                <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3" />
-              </svg>
+            <div className="tech-visual">
+              <div className="tech-badge-glow" />
+              <div className="tech-badge">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <ellipse cx="12" cy="5" rx="9" ry="3" />
+                  <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3" />
+                </svg>
+              </div>
             </div>
-            <div className="tech-card-name">PostgreSQL</div>
+            <div className="tech-card-name">postgresql</div>
             <div className="tech-card-desc">Supabase + pgvector</div>
           </motion.div>
           <motion.div className="tech-card" variants={prefersReducedMotion ? undefined : revealItem}>
-            <div className="tech-card-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="12" cy="12" r="10" />
-                <line x1="12" y1="8" x2="12" y2="12" />
-              </svg>
+            <div className="tech-visual">
+              <div className="tech-badge-glow" />
+              <div className="tech-badge">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="8" x2="12" y2="12" />
+                </svg>
+              </div>
             </div>
-            <div className="tech-card-name">Solana</div>
+            <div className="tech-card-name">solana</div>
             <div className="tech-card-desc">On-chain execution & audit</div>
           </motion.div>
         </motion.div>
       </section>
 
+      <SectionDivider />
+
+      {/* FAQ */}
+      <section className="section" id="faq">
+        <div className="section-centered">
+          <span className="section-eyebrow">FAQ</span>
+          <h2 className="section-heading">Questions, answered.</h2>
+        </div>
+
+        <div className="faq-list">
+          {FAQ_ITEMS.map((item) => (
+            <details className="faq-item" key={item.q}>
+              <summary>{item.q}</summary>
+              <p className="faq-answer">{item.a}</p>
+            </details>
+          ))}
+        </div>
+      </section>
+
       {/* CTA */}
       <section className="cta-section" id="cta">
+        <div className="cta-glow" />
         <div className="cta-inner">
+          <span className="cta-eyebrow">
+            <span className="hero-eyebrow-dot"></span>
+            Ready when you are
+          </span>
           <h2 className="cta-heading">
-            Build your agent.<br />Own your infrastructure.
+            Build your agent.<br /><em>Own</em> your infrastructure.
           </h2>
           <p className="cta-desc">Deploy your first autonomous agent on Solana today. Full control. Full transparency.</p>
           <div className="cta-buttons">
-            <button className="btn-cta-primary" onClick={handleBuildAgent}>Build Your Agent</button>
+            <button className="btn-cta-primary" onClick={handleBuildAgent}>
+              Build Your Agent
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
             <a href="https://github.com/yourusername/archi" className="btn-cta-ghost">Explore Docs</a>
           </div>
         </div>
@@ -623,30 +902,38 @@ export default function LandingClient() {
       <footer className="footer">
         <div className="footer-inner">
           <div>
-            <div className="footer-brand-name">ARCHI</div>
+            <div className="footer-brand">
+              <div className="footer-brand-icon">
+                <img src="/logo.png" alt="ARCHI" />
+              </div>
+              <span className="footer-brand-name">ARCHI</span>
+            </div>
             <p className="footer-brand-tag">Decentralized autonomous AI agents on Solana. Your agents. Your rules.</p>
           </div>
           <div className="footer-columns">
             <div>
               <div className="footer-col-title">Product</div>
               <div className="footer-col-links">
-                <a href="#">Agent Registry</a>
-                <a href="#">Agent Forge</a>
-                <a href="#">Dashboard</a>
+                <a href="/agents">Agent Registry</a>
+                <a href="/agents">Agent Forge</a>
+                <a href="/dashboard">Dashboard</a>
               </div>
             </div>
             <div>
               <div className="footer-col-title">Resources</div>
               <div className="footer-col-links">
-                <a href="#">Documentation</a>
-                <a href="#">Architecture</a>
+                <a href="/knowledge">Documentation</a>
+                <a href="#tech">Architecture</a>
               </div>
             </div>
           </div>
         </div>
         <div className="footer-bottom">
-          <span>© 2025 ARCHI. Decentralized AI on Solana.</span>
-          <span>Next.js Retro Purple Edition</span>
+          <span>© 2026 ARCHI. Decentralized AI on Solana.</span>
+          <span className="footer-status-badge">
+            <span className="footer-status-dot"></span>
+            All systems operational
+          </span>
         </div>
       </footer>
     </motion.main>

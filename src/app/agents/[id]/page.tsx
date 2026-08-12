@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import toast, { Toaster } from 'react-hot-toast';
 import { useAuth } from '@/hooks/useAuth';
+import { WalletBadge } from '@/components/WalletBadge';
 
 interface Agent {
   id: string;
@@ -242,7 +243,10 @@ export default function AgentDetailPage() {
             <Link href="/" className="nav-link">Home</Link>
             <Link href="/agents" className="nav-link active" style={{ color: 'var(--purple-main)', fontWeight: '800' }}>Agents</Link>
           </div>
-          <Link href="/agents" className="nav-cta">← Back to Registry</Link>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <WalletBadge />
+            <Link href="/agents" className="nav-cta">← Back to Registry</Link>
+          </div>
         </nav>
       </div>
 

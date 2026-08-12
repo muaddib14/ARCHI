@@ -17,6 +17,11 @@ export default function KnowledgePage() {
     return counts;
   }, []);
 
+  const totalActions = useMemo(
+    () => KNOWLEDGE_ITEMS.reduce((sum, item) => sum + item.actionsCount, 0),
+    []
+  );
+
   // Filter items by search query and category
   const filteredItems = useMemo(() => {
     return KNOWLEDGE_ITEMS.filter(item => {
@@ -75,7 +80,7 @@ export default function KnowledgePage() {
         </div>
 
         <h1 className="knowledge-hero-title">
-          100,060 tool knowledge.<br />
+          {totalActions.toLocaleString()} tool actions.<br />
           Open source. Free forever.
         </h1>
 

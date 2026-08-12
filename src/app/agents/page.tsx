@@ -7,6 +7,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { SkeletonCard } from '@/components/SkeletonCard';
 import { ConfirmModal } from '@/components/ConfirmModal';
+import { WalletBadge } from '@/components/WalletBadge';
 
 interface AgentItem {
   id: string;
@@ -192,9 +193,12 @@ export default function AgentsPage() {
             <Link href="/agents" className="nav-link active" style={{ color: 'var(--purple-main)', fontWeight: '800' }}>Agents</Link>
             <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="nav-link">GitHub</a>
           </div>
-          <button className="nav-cta" onClick={() => setShowCreateModal(true)}>
-            + Deploy Agent
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <WalletBadge />
+            <button className="nav-cta" onClick={() => setShowCreateModal(true)}>
+              + Deploy Agent
+            </button>
+          </div>
         </nav>
       </div>
 
