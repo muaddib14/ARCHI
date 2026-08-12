@@ -264,6 +264,7 @@ export default function LandingClient() {
 
   // --- T6: mega-menu nav dropdown ---
   const [openMenu, setOpenMenu] = useState<string | null>(null);
+  const [activeFaq, setActiveFaq] = useState(0);
 
   // --- T7: background gradient transition tied to whole-page scroll ---
   const { scrollYProgress: pageScrollProgress } = useScroll();
@@ -864,13 +865,59 @@ export default function LandingClient() {
           <h2 className="section-heading">Questions, answered.</h2>
         </div>
 
-        <div className="faq-list">
-          {FAQ_ITEMS.map((item) => (
-            <details className="faq-item" key={item.q}>
-              <summary>{item.q}</summary>
-              <p className="faq-answer">{item.a}</p>
-            </details>
-          ))}
+        <div className="faq-shell">
+          <div className="faq-list">
+            {FAQ_ITEMS.map((item, i) => (
+              <div className={`faq-item${i === activeFaq ? ' faq-item--active' : ''}`} key={item.q}>
+                <button
+                  type="button"
+                  className="faq-summary"
+                  onClick={() => setActiveFaq(i)}
+                  aria-expanded={i === activeFaq}
+                >
+                  {item.q}
+                  <span className="faq-plus" aria-hidden="true" />
+                </button>
+              </div>
+            ))}
+          </div>
+
+          <div className="faq-preview">
+            <div className="faq-preview-glow" />
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeFaq}
+                className="faq-preview-card"
+                initial={prefersReducedMotion ? undefined : { opacity: 0, y: 10, scale: 0.98 }}
+                animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0, scale: 1 }}
+                exit={prefersReducedMotion ? undefined : { opacity: 0, y: -10, scale: 0.98 }}
+                transition={{ duration: 0.3, ease: EASE_OUT_EXPRESSIVE }}
+              >
+                <div className="faq-preview-row faq-preview-row--head">
+                  <span className="faq-preview-check">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                      <path d="M4 12l6 6L20 6" />
+                    </svg>
+                  </span>
+                  <div>
+                    <div className="faq-preview-title">{FAQ_ITEMS[activeFaq].q}</div>
+                    <div className="faq-preview-meta">Answered by ARCHI</div>
+                  </div>
+                </div>
+                <div className="faq-preview-divider" />
+                <p className="faq-preview-body">{FAQ_ITEMS[activeFaq].a}</p>
+                <div className="faq-preview-divider" />
+                <div className="faq-preview-row faq-preview-row--foot">
+                  <span className="faq-preview-check faq-preview-check--sm">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                      <path d="M4 12l6 6L20 6" />
+                    </svg>
+                  </span>
+                  <span>Verified against the current build</span>
+                </div>
+              </motion.div>
+            </AnimatePresence>
+          </div>
         </div>
       </section>
 
