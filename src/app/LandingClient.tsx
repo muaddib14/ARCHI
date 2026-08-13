@@ -243,6 +243,24 @@ function CountUp({ value, prefix = '', suffix = '', duration = 1.4 }: { value: n
   );
 }
 
+function LiveMeter() {
+  const ref = useRef<HTMLSpanElement>(null);
+  const inView = useInView(ref, { once: true, amount: 0.5 });
+  const prefersReducedMotion = useReducedMotion();
+  const [value, setValue] = useState(0);
+
+  useEffect(() => {
+    if (!inView || prefersReducedMotion) return;
+    const id = setInterval(() => {
+      setValue((v) => v + 0.014);
+    }, 120);
+    return () => clearInterval(id);
+  }, [inView, prefersReducedMotion]);
+
+  if (prefersReducedMotion) return <span ref={ref}>running</span>;
+  return <span ref={ref}>{value.toFixed(2)}</span>;
+}
+
 const revealContainer = {
   hidden: {},
   show: { transition: { staggerChildren: 0.1 } },
@@ -729,6 +747,50 @@ export default function LandingClient() {
         <span className="section-eyebrow">Compare</span>
         <h2 className="section-heading">Why decentralized AI?</h2>
         <p className="section-desc">Centralized providers own your data and meter your usage. ARCHI puts you in control.</p>
+
+        <motion.div
+          className="rent-owned-split"
+          initial={prefersReducedMotion ? undefined : { opacity: 0, y: 20 }}
+          whileInView={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.4 }}
+          transition={{ duration: 0.6, ease: EASE_OUT_EXPRESSIVE }}
+        >
+          <div className="rent-owned-panel rent-owned-panel--rent">
+            <div className="rent-owned-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <rect x="5" y="11" width="14" height="10" rx="2" />
+                <path d="M8 11V7a4 4 0 018 0v4" />
+              </svg>
+            </div>
+            <div className="rent-owned-label">Rented</div>
+            <div className="rent-owned-sub">Centralized AI provider</div>
+            <div className="rent-owned-meter">
+              <div className="rent-owned-meter-value">$<LiveMeter /></div>
+              <div className="rent-owned-meter-caption">meter runs whether you watch it or not</div>
+            </div>
+          </div>
+
+          <div className="rent-owned-vs">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M5 12h14M13 6l6 6-6 6" />
+            </svg>
+          </div>
+
+          <div className="rent-owned-panel rent-owned-panel--own">
+            <div className="rent-owned-icon rent-owned-icon--own">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="8" cy="15" r="4" />
+                <path d="M10.5 12.5L20 3m0 0h-4m4 0v4M15 8l2 2" />
+              </svg>
+            </div>
+            <div className="rent-owned-label">Owned</div>
+            <div className="rent-owned-sub">Your ARCHI agent</div>
+            <div className="rent-owned-meter rent-owned-meter--calm">
+              <div className="rent-owned-meter-value rent-owned-meter-value--calm">You hold the keys</div>
+              <div className="rent-owned-meter-caption">inference still costs — but you see it, set it, control it</div>
+            </div>
+          </div>
+        </motion.div>
 
         <motion.div
           className="comparison-wrapper"

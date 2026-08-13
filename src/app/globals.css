@@ -1059,6 +1059,133 @@ a { color: inherit; text-decoration: none; }
 }
 
 /* ============================================================
+   RENT VS OWNED — split motion graphic
+   ============================================================ */
+
+.rent-owned-split {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: stretch;
+  gap: 20px;
+  max-width: 860px;
+  margin: 44px auto 0;
+}
+
+.rent-owned-panel {
+  border-radius: 24px;
+  padding: 32px 26px;
+  text-align: center;
+  border: 1px solid rgba(30, 27, 75, 0.08);
+  box-shadow: 0 2px 6px rgba(30, 27, 75, 0.04), 0 20px 40px -22px rgba(30, 27, 75, 0.16);
+}
+
+.rent-owned-panel--rent {
+  background:
+    radial-gradient(140% 100% at 50% -10%, rgba(244, 63, 94, 0.08), transparent 55%),
+    #ffffff;
+}
+
+.rent-owned-panel--own {
+  background:
+    radial-gradient(140% 100% at 50% -10%, rgba(139, 92, 246, 0.14), transparent 55%),
+    #ffffff;
+}
+
+.rent-owned-icon {
+  width: 52px;
+  height: 52px;
+  margin: 0 auto 16px;
+  border-radius: 16px;
+  background: #131120;
+  color: rgba(244, 63, 94, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 16px -6px rgba(19, 17, 32, 0.4);
+}
+
+.rent-owned-icon svg { width: 22px; height: 22px; }
+
+.rent-owned-icon--own {
+  color: #ffffff;
+  background: linear-gradient(160deg, var(--purple-mid), var(--purple-dark));
+  box-shadow: 0 14px 28px -10px rgba(109, 40, 217, 0.5);
+  animation: badge-float 4.4s ease-in-out infinite;
+}
+
+.rent-owned-label {
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1.4px;
+  color: rgba(19, 17, 32, 0.4);
+  margin-bottom: 6px;
+}
+
+.rent-owned-panel--own .rent-owned-label { color: var(--purple-main); }
+
+.rent-owned-sub {
+  font-size: 15px;
+  font-weight: 700;
+  color: #131120;
+  margin-bottom: 22px;
+}
+
+.rent-owned-meter {
+  border-radius: 14px;
+  background: rgba(244, 63, 94, 0.06);
+  border: 1px solid rgba(244, 63, 94, 0.15);
+  padding: 16px;
+}
+
+.rent-owned-meter-value {
+  font-family: var(--font-mono);
+  font-size: 22px;
+  font-weight: 800;
+  color: #e11d48;
+  margin-bottom: 4px;
+  font-variant-numeric: tabular-nums;
+}
+
+.rent-owned-meter-caption {
+  font-size: 11.5px;
+  color: rgba(19, 17, 32, 0.45);
+  line-height: 1.4;
+}
+
+.rent-owned-meter--calm {
+  background: var(--purple-glow);
+  border-color: rgba(109, 40, 217, 0.18);
+}
+
+.rent-owned-meter-value--calm {
+  font-family: var(--font-body);
+  font-size: 15.5px;
+  font-weight: 700;
+  color: var(--purple-main);
+}
+
+.rent-owned-vs {
+  align-self: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #131120;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.rent-owned-vs svg { width: 16px; height: 16px; }
+
+@media (max-width: 700px) {
+  .rent-owned-split { grid-template-columns: 1fr; }
+  .rent-owned-vs { transform: rotate(90deg); margin: 0 auto; }
+}
+
+/* ============================================================
    COMPARISON TABLE — Retro Purple
    ============================================================ */
 
