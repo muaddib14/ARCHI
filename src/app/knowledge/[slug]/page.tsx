@@ -2,6 +2,7 @@ import React from 'react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { KNOWLEDGE_ITEMS } from '@/data/knowledgeData';
+import { ConnectActionButton } from '@/components/ConnectActionButton';
 
 export async function generateStaticParams() {
   return KNOWLEDGE_ITEMS.map((item) => ({
@@ -114,6 +115,7 @@ export default async function KnowledgeDetailPage({
                   {action.name}
                 </span>
               </div>
+              <ConnectActionButton integrationName={item.name} actionName={action.name} />
             </div>
 
             <p style={{ fontSize: '14px', color: 'var(--stone)', marginBottom: '16px', lineHeight: '1.55' }}>

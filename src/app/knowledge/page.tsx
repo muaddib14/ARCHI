@@ -61,6 +61,8 @@ export default function KnowledgePage() {
           <div className="nav-links">
             <Link href="/" className="nav-link">Home</Link>
             <Link href="/knowledge" className="nav-link active" style={{ color: 'var(--purple-main)', fontWeight: '800' }}>Knowledge</Link>
+            <Link href="/agents" className="nav-link">Agents</Link>
+            <Link href="/audit" className="nav-link">Audit</Link>
             <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="nav-link">GitHub</a>
           </div>
           <Link href="/" className="nav-cta">
@@ -80,7 +82,7 @@ export default function KnowledgePage() {
         </div>
 
         <h1 className="knowledge-hero-title">
-          {totalActions.toLocaleString()} tool actions.<br />
+          {totalActions.toLocaleString('en-US')} tool actions.<br />
           Open source. Free forever.
         </h1>
 

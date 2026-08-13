@@ -553,7 +553,7 @@ export default function AgentDetailPage() {
                           textTransform: 'uppercase',
                           letterSpacing: '0.5px'
                         }}>
-                          {new Date(interaction.created_at).toLocaleString()}
+                          {new Date(interaction.created_at).toLocaleString('en-US')}
                         </div>
                         <div style={{
                           display: 'inline-flex',

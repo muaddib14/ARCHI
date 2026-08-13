@@ -93,7 +93,7 @@ a { color: inherit; text-decoration: none; }
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 24px;
+  gap: 16px;
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
@@ -101,8 +101,13 @@ a { color: inherit; text-decoration: none; }
   border-radius: var(--r-pill);
   padding: 8px 12px 8px 20px;
   box-shadow: var(--shadow-retro-sm);
-  max-width: 860px;
+  max-width: 1040px;
   width: 100%;
+}
+
+.nav-brand,
+.nav-capsule > div:last-child {
+  flex-shrink: 0;
 }
 
 .nav-brand {
@@ -150,7 +155,7 @@ a { color: inherit; text-decoration: none; }
   font-size: 14px;
   font-weight: 600;
   color: var(--purple-deep);
-  padding: 8px 16px;
+  padding: 8px 13px;
   border-radius: var(--r-pill);
   transition: all 0.2s ease;
   white-space: nowrap;

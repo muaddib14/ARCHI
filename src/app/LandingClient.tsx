@@ -143,6 +143,7 @@ const NAV_ITEMS: { id: string; label: string; href: string; highlight?: boolean 
   { id: 'knowledge', label: 'Knowledge', href: '/knowledge', highlight: true },
   { id: 'compare', label: 'Compare', href: '#compare' },
   { id: 'tech', label: 'Tech', href: '#tech' },
+  { id: 'audit', label: 'Audit', href: '/audit' },
 ];
 
 const HOW_IT_WORKS_STEPS = [
@@ -209,6 +210,46 @@ function SectionDivider() {
       </span>
       <span className="section-divider-line" />
     </div>
+  );
+}
+
+function LiveSegment({ text }: { text: string }) {
+  const prefersReducedMotion = useReducedMotion();
+  const numMatch = text.match(/^([\d][\d,]*)(.*)$/);
+  const timeMatch = text.match(/^Last run (\d+)m ago$/);
+  const [num, setNum] = useState(numMatch ? parseInt(numMatch[1].replace(/,/g, ''), 10) : 0);
+  const [mins, setMins] = useState(timeMatch ? parseInt(timeMatch[1], 10) : 0);
+
+  useEffect(() => {
+    if (prefersReducedMotion) return undefined;
+    if (numMatch) {
+      const id = setInterval(() => setNum((v) => v + 1), 3200 + Math.random() * 2400);
+      return () => clearInterval(id);
+    }
+    if (timeMatch) {
+      const id = setInterval(() => setMins((v) => v + 1), 14000);
+      return () => clearInterval(id);
+    }
+    return undefined;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [text]);
+
+  if (numMatch) return <>{num.toLocaleString('en-US')}{numMatch[2]}</>;
+  if (timeMatch) return <>Last run {mins}m ago</>;
+  return <>{text}</>;
+}
+
+function LiveMetaText({ text }: { text: string }) {
+  const parts = text.split(' / ');
+  return (
+    <>
+      {parts.map((part, i) => (
+        <React.Fragment key={i}>
+          {i > 0 && ' / '}
+          <LiveSegment text={part} />
+        </React.Fragment>
+      ))}
+    </>
   );
 }
 
@@ -486,7 +527,7 @@ export default function LandingClient() {
                       <div className={`mockup-avatar mockup-avatar--${row.avatar}`}></div>
                       <div className="mockup-row-content">
                         <div className="mockup-row-title">{row.title}</div>
-                        <div className="mockup-row-meta">{row.meta}</div>
+                        <div className="mockup-row-meta"><LiveMetaText text={row.meta} /></div>
                       </div>
                       <span className={`mockup-row-badge mockup-row-badge--${row.status}`}>
                         {row.status === 'active' ? 'Active' : 'Idle'}

@@ -9,6 +9,13 @@ import { SkeletonCard } from '@/components/SkeletonCard';
 import { ConfirmModal } from '@/components/ConfirmModal';
 import { WalletBadge } from '@/components/WalletBadge';
 
+const AGENT_TOOL_OPTIONS = [
+  { name: 'solana_swap', label: 'Jupiter Swap' },
+  { name: 'pyth_price_feed', label: 'Pyth Price Feed' },
+  { name: 'mint_nft', label: 'NFT Minting' },
+  { name: 'query_pgvector', label: 'pgvector RAG' },
+];
+
 interface AgentItem {
   id: string;
   name: string;
@@ -40,6 +47,13 @@ export default function AgentsPage() {
     system_prompt: '',
     owner_wallet: ''
   });
+  const [selectedTools, setSelectedTools] = useState<string[]>([]);
+
+  const toggleTool = (toolName: string) => {
+    setSelectedTools((prev) =>
+      prev.includes(toolName) ? prev.filter((t) => t !== toolName) : [...prev, toolName]
+    );
+  };
 
   useEffect(() => {
     fetch('/api/agents')
@@ -88,9 +102,23 @@ export default function AgentsPage() {
       }
 
       const newAgent = await res.json();
+
+      if (selectedTools.length > 0) {
+        await Promise.all(
+          selectedTools.map((tool_name) =>
+            fetch(`/api/agents/${newAgent.id}/tools`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ tool_name })
+            }).catch((err) => console.error(`Failed to attach tool ${tool_name}:`, err))
+          )
+        );
+      }
+
       setAgents(prev => [newAgent, ...prev]);
       setShowCreateModal(false);
       setFormData({ name: '', description: '', model: 'claude-3-5-sonnet-20241022', system_prompt: '', owner_wallet: '' });
+      setSelectedTools([]);
 
       toast.success(`Agent "${newAgent.name}" created successfully!`, { id: loadingToast });
     } catch (err) {
@@ -191,6 +219,7 @@ export default function AgentsPage() {
             <Link href="/" className="nav-link">Home</Link>
             <Link href="/knowledge" className="nav-link">Knowledge</Link>
             <Link href="/agents" className="nav-link active" style={{ color: 'var(--purple-main)', fontWeight: '800' }}>Agents</Link>
+            <Link href="/audit" className="nav-link">Audit</Link>
             <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="nav-link">GitHub</a>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -693,6 +722,53 @@ export default function AgentsPage() {
                   }}
                   placeholder="Define the agent's behavior and personality..."
                 />
+              </div>
+
+              <div>
+                <label style={{
+                  display: 'block',
+                  fontWeight: '700',
+                  fontSize: '12px',
+                  color: 'var(--purple-deep)',
+                  marginBottom: '8px',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px'
+                }}>
+                  Tools
+                </label>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                  {AGENT_TOOL_OPTIONS.map((tool) => {
+                    const isSelected = selectedTools.includes(tool.name);
+                    return (
+                      <button
+                        key={tool.name}
+                        type="button"
+                        onClick={() => toggleTool(tool.name)}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          padding: '9px 14px',
+                          borderRadius: 'var(--r-pill)',
+                          border: `2px solid ${isSelected ? 'var(--purple-main)' : 'var(--purple-soft)'}`,
+                          background: isSelected ? 'var(--purple-main)' : '#ffffff',
+                          color: isSelected ? '#ffffff' : 'var(--purple-deep)',
+                          fontSize: '12.5px',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          transition: 'all 0.15s ease'
+                        }}
+                      >
+                        {isSelected && (
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                            <path d="M4 12l6 6L20 6" />
+                          </svg>
+                        )}
+                        {tool.label}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
 
               <div>
