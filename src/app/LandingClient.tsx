@@ -213,6 +213,49 @@ function SectionDivider() {
   );
 }
 
+const ARCHI_CA = 'AKyTVrR5vKN2pfW2tSxyAzaH3TAaqYSd6CY2vZiqpump';
+const PUMPFUN_URL = `https://pump.fun/coin/${ARCHI_CA}`;
+
+function CaBadge() {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(ARCHI_CA);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1600);
+    } catch {
+      // clipboard unavailable — ignore silently
+    }
+  };
+
+  return (
+    <div className="ca-badge">
+      <span className="ca-badge-label">CA</span>
+      <span className="ca-badge-address">{ARCHI_CA.slice(0, 4)}...{ARCHI_CA.slice(-4)}</span>
+      <button type="button" className="ca-badge-action" onClick={handleCopy} aria-label="Copy contract address">
+        {copied ? (
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <path d="M4 12l6 6L20 6" />
+          </svg>
+        ) : (
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <rect x="9" y="9" width="12" height="12" rx="2" />
+            <path d="M5 15V5a2 2 0 012-2h10" />
+          </svg>
+        )}
+      </button>
+      <a href={PUMPFUN_URL} target="_blank" rel="noopener noreferrer" className="ca-badge-action ca-badge-action--link" aria-label="View on pump.fun">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6" />
+          <path d="M15 3h6v6" />
+          <path d="M10 14L21 3" />
+        </svg>
+      </a>
+    </div>
+  );
+}
+
 function LiveSegment({ text }: { text: string }) {
   const prefersReducedMotion = useReducedMotion();
   const numMatch = text.match(/^([\d][\d,]*)(.*)$/);
@@ -465,6 +508,8 @@ export default function LandingClient() {
             Knowledge Base →
           </a>
         </div>
+
+        <CaBadge />
 
         {/* Agent Tab Switcher */}
         <div
